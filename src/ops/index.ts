@@ -1,6 +1,5 @@
 import { LCDClient, MnemonicKey, Wallet } from "@terra-money/terra.js";
-import { anchor } from "./ops";
-import { updatebLunaParams } from './update-params'
+import { lido } from "./ops";
 
 const args = process.argv.slice(2)
 
@@ -16,7 +15,7 @@ Promise.resolve()
     .then(() => ownerWallet.lcd.tendermint.blockInfo().then(console.log))
 
 // run store_code, instantiate, print contract addresses to stdout
-    .then(() => anchor(ownerWallet)
+    .then(() => lido(ownerWallet)
         .then(contracts => console.log(contracts))
         .catch(console.error)
     )

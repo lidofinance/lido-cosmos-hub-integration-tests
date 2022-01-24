@@ -6,21 +6,9 @@ import {
     MsgStoreCode,
     Fee,
     Wallet,
-    LCDClient,
-    MsgExecuteContract,
-    LegacyAminoMultisigPublicKey,
-    MnemonicKey,
-    SignDoc,
 } from "@terra-money/terra.js";
-import {SignatureV2} from "@terra-money/terra.js/dist/core/SignatureV2";
-import {MultiSignature} from "@terra-money/terra.js/dist/core/MultiSignature";
 import * as fs from "fs";
 import {execute, instantiate, send_transaction} from "./flow/execution";
-
-type Mint = {
-    minter: string;
-    cap?: number;
-};
 
 const contracts = [
     "lido_terra_hub",
@@ -31,7 +19,7 @@ const contracts = [
 
 type Expire = {at_height: number} | {at_time: number} | {never: {}};
 
-export default class AnchorbAsset {
+export default class LidoAsset {
     public contractInfo: {
         [contractName: string]: {codeId: number; contractAddress: string};
     };
@@ -493,90 +481,6 @@ export default class AnchorbAsset {
         });
         if (isTxError(slashingExe)) {
             throw new Error(`Couldn't run: ${slashingExe.raw_log}`);
-        }
-    }
-
-    public async reward(sender: Wallet): Promise<void> {
-        const contract = this.contractInfo.lido_terra_reward.contractAddress;
-        const rewardExe = await execute(sender, contract, {
-            claim_rewards: {recipient: null},
-        });
-        if (isTxError(rewardExe)) {
-            throw new Error(`Couldn't run: ${rewardExe.raw_log}`);
-        }
-    }
-
-    public async reward2(sender: Wallet, address: string): Promise<void> {
-        const contract = this.contractInfo.lido_terra_reward.contractAddress;
-        const rewardExe = await execute(sender, contract, {
-            claim_rewards: {recipient: address},
-        });
-        if (isTxError(rewardExe)) {
-            throw new Error(`Couldn't run: ${rewardExe.raw_log}`);
-        }
-    }
-
-    public async reward_swap(sender: Wallet): Promise<void> {
-        const contract = this.contractInfo.lido_terra_reward.contractAddress;
-        const swapExe = await execute(sender, contract, {
-            swap_to_reward_denom: {},
-        });
-        if (isTxError(swapExe)) {
-            throw new Error(`Couldn't run: ${swapExe.raw_log}`);
-        }
-    }
-
-    public async reward_update_global(
-        sender: Wallet,
-        prev_balance: string
-    ): Promise<void> {
-        const contract = this.contractInfo.lido_terra_reward.contractAddress;
-        const updateGlobalExe = await execute(sender, contract, {
-            update_global_index: {prev_balance: prev_balance},
-        });
-        if (isTxError(updateGlobalExe)) {
-            throw new Error(`Couldn't run: ${updateGlobalExe.raw_log}`);
-        }
-    }
-
-    public async reward_update_denom(
-        sender: Wallet,
-        reward_denom?: string
-    ): Promise<void> {
-        const contract = this.contractInfo.lido_terra_reward.contractAddress;
-        const updateDenomExe = await execute(sender, contract, {
-            update_reward_denom: {reward_denom: reward_denom},
-        });
-        if (isTxError(updateDenomExe)) {
-            throw new Error(`Couldn't run: ${updateDenomExe.raw_log}`);
-        }
-    }
-
-    public async reward_increase_balance(
-        sender: Wallet,
-        address?: string,
-        amount?: string
-    ): Promise<void> {
-        const contract = this.contractInfo.lido_terra_reward.contractAddress;
-        const increaseExe = await execute(sender, contract, {
-            increase_balance: {address: address, amount: amount},
-        });
-        if (isTxError(increaseExe)) {
-            throw new Error(`Couldn't run: ${increaseExe.raw_log}`);
-        }
-    }
-
-    public async reward_decrease_balance(
-        sender: Wallet,
-        address?: string,
-        amount?: string
-    ): Promise<void> {
-        const contract = this.contractInfo.lido_terra_reward.contractAddress;
-        const decreaseExe = await execute(sender, contract, {
-            decrease_balance: {address: address, amount: amount},
-        });
-        if (isTxError(decreaseExe)) {
-            throw new Error(`Couldn't run: ${decreaseExe.raw_log}`);
         }
     }
 

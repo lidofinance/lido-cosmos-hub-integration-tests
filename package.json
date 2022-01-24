@@ -1,5 +1,5 @@
 {
-  "name": "anchor_integration_tests",
+  "name": "lido_cosmos_hub_integration_tests",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,7 +9,7 @@
     "fmt": "tslint -p . --fix && prettier 'src/**/*.{ts, json}' --write",
     "deploy-tequila": "ts-node src/ops/index.ts https://tequila-lcd.terra.dev tequila-0004 \"genre dynamic jacket hair earn enlist dad already airport train car thunder use forum ball novel series tribe label kit walk boy spare stadium\""
   },
-  "author": "MSNTCS",
+  "author": "LIDO",
   "license": "ISC",
   "dependencies": {
     "@terra-money/terra.js": "^2.1.8",

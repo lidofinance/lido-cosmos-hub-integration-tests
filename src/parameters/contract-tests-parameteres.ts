@@ -8,7 +8,7 @@ export const setTestParams = (
 ): CustomInstantiationParam => {
   let testParams: CustomInstantiationParam = {
     testAccount: testAccount,
-    basset: {
+    lasset: {
       epoch_period: 10,
       underlying_coin_denom: "uluna",
       unbonding_period: 10,

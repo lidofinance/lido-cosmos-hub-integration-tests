@@ -1,8 +1,8 @@
 export interface Contracts {
-  bLunaHub: string,
+  lidoHub: string,
   stLunaToken: string,
-  bAssetReward: string,
-  bAssetAirdrop: string,
+  rewardsDispatcher: string,
+  validatorsRegistry: string
 }
 
 export type Addresses = string[];

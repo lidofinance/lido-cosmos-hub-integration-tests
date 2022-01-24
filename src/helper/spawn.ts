@@ -1,4 +1,4 @@
-import basset from "./basset_helper";
+import lasset from "./lido_helper";
 import {Fee, Validator, Wallet} from "@terra-money/terra.js";
 import {execute} from "./flow/execution";
 import {Testkit, TestkitInit} from "../testkit/testkit";
@@ -6,7 +6,7 @@ import {Testkit, TestkitInit} from "../testkit/testkit";
 // https://terra-money.quip.com/lR4sAHcX3yiB/WebApp-Dev-Page-Deployment#UKCACAa6MDK
 export interface CustomInstantiationParam {
     testAccount: string;
-    basset?: {
+    lasset?: {
         epoch_period?: number;
         unbonding_period?: number;
         underlying_coin_denom?: string;
@@ -18,30 +18,27 @@ export interface CustomInstantiationParam {
     };
 }
 
-export default class Anchor {
-    public bAsset: basset;
+export default class Lido {
+    public lAsset: lasset;
     private owner: Wallet;
 
     constructor(owner: Wallet) {
         this.owner = owner;
-        this.bAsset = new basset();
+        this.lAsset = new lasset();
     }
 
     public async store_contracts_localterra(
-        bassetLocation: string,
+        lassetLocation: string,
         fee?: Fee
     ): Promise<void> {
-        await this.bAsset.storeCodes(this.owner, bassetLocation, fee);
+        await this.lAsset.storeCodes(this.owner, lassetLocation, fee);
     }
 
     public async store_contracts(
-        bassetLocation: string,
-        mmLocation: string,
-        terraswapLocation: string,
-        ancLocation: string,
+        lassetLocation: string,
         fee?: Fee
     ): Promise<void> {
-        await this.bAsset.storeCodes(this.owner, bassetLocation, fee);
+        await this.lAsset.storeCodes(this.owner, lassetLocation, fee);
     }
 
     public async instantiate_localterra(
@@ -49,19 +46,19 @@ export default class Anchor {
         params?: CustomInstantiationParam,
         validators_addresses?: Array<string>,
     ): Promise<void> {
-        await this.bAsset.instantiate_hub(this.owner, params?.basset, fee);
-        await this.bAsset.instantiate_validators_registry(this.owner, {
-            hub_contract: this.bAsset.contractInfo.lido_terra_hub.contractAddress,
+        await this.lAsset.instantiate_hub(this.owner, params?.lasset, fee);
+        await this.lAsset.instantiate_validators_registry(this.owner, {
+            hub_contract: this.lAsset.contractInfo.lido_terra_hub.contractAddress,
             registry: validators_addresses.map((val) => {
                 return {active: true, total_delegated: "100", address: val}
             })
         }, fee);
-        await this.bAsset.instantiate_st_luna(this.owner, {}, fee);
-        await this.bAsset.instantiate_lido_terra_rewards_dispatcher(this.owner, {
-            lido_fee_address: params.basset.lido_fee_address,
+        await this.lAsset.instantiate_st_luna(this.owner, {}, fee);
+        await this.lAsset.instantiate_lido_terra_rewards_dispatcher(this.owner, {
+            lido_fee_address: params.lasset.lido_fee_address,
         }, fee)
 
-        await this.bAsset.register_contracts(this.owner, {}, fee);
+        await this.lAsset.register_contracts(this.owner, {}, fee);
     }
 
     public async instantiate(
@@ -70,19 +67,19 @@ export default class Anchor {
         validators?: Array<TestkitInit.Validator>,
     ): Promise<void> {
 
-        await this.bAsset.instantiate_hub(this.owner, params?.basset, fee);
-        await this.bAsset.instantiate_validators_registry(this.owner, {
-            hub_contract: this.bAsset.contractInfo.lido_terra_hub.contractAddress,
+        await this.lAsset.instantiate_hub(this.owner, params?.lasset, fee);
+        await this.lAsset.instantiate_validators_registry(this.owner, {
+            hub_contract: this.lAsset.contractInfo.lido_terra_hub.contractAddress,
             registry: validators.map((val) => {
                 return {active: true, total_delegated: "100", address: val.validator_address}
             })
         }, fee);
-        await this.bAsset.instantiate_st_luna(this.owner, {}, fee);
-        await this.bAsset.instantiate_lido_terra_rewards_dispatcher(this.owner, {
-            lido_fee_address: params.basset.lido_fee_address,
+        await this.lAsset.instantiate_st_luna(this.owner, {}, fee);
+        await this.lAsset.instantiate_lido_terra_rewards_dispatcher(this.owner, {
+            lido_fee_address: params.lasset.lido_fee_address,
         }, fee)
 
-        await this.bAsset.register_contracts(this.owner, {}, fee);
+        await this.lAsset.register_contracts(this.owner, {}, fee);
     }
 }
 

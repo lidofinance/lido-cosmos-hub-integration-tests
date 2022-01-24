@@ -1,10 +1,10 @@
 import {LCDClient, LocalTerra, MnemonicKey, MsgSend, Fee, Validator, Wallet, LegacyAminoMultisigPublicKey, SimplePublicKey} from "@terra-money/terra.js";
-import Anchor from "../helper/spawn";
-import AnchorbAsset from "../helper/basset_helper";
+import Lido from "../helper/spawn";
+import LidoAsset from "../helper/lido_helper";
 import {setTestParams} from "../parameters/contract-tests-parameteres";
 import * as path from "path";
-import AnchorbAssetQueryHelper from "../helper/basset_queryhelper";
-import {UnbondRequestsResponse} from "../helper/types/lido_terra_hub/unbond_requests_response";
+import LidoAssetQueryHelper from "../helper/lasset_queryhelper";
+import {UnbondRequestsResponse} from "../helper/types/hub/unbond_requests_response";
 import {send_transaction} from "../helper/flow/execution";
 import {Pagination} from "@terra-money/terra.js/dist/client/lcd/APIRequester";
 const {exec} = require('child_process');
@@ -111,13 +111,13 @@ export const disconnectValidator = async (name: string): Promise<any> => {
 
 export class TestStateLocalTestNet {
     validators: Validator[]
-    anchor: Anchor
+    lido: Lido
     gasStation: MnemonicKey
     lcdClient: LCDClient
     wallets: Record<string, Wallet>
     multisigKeys: Array<MnemonicKey>
     multisigPublikKey: LegacyAminoMultisigPublicKey
-    basset: AnchorbAsset
+    lasset: LidoAsset
     validators_addresses: Array<string>
     constructor() {
         this.lcdClient = new LCDClient({
@@ -141,7 +141,7 @@ export class TestStateLocalTestNet {
         }
         this.gasStation = new MnemonicKey({mnemonic: accKeys[5]})
         this.validators_addresses = [vals[0].address]
-        this.anchor = new Anchor(this.wallets.ownerWallet);
+        this.lido = new Lido(this.wallets.ownerWallet);
 
         this.multisigKeys = [
             new MnemonicKey({mnemonic: 'notice oak worry limit wrap speak medal online prefer cluster roof addict wrist behave treat actual wasp year salad speed social layer crew genius'}),
@@ -156,11 +156,11 @@ export class TestStateLocalTestNet {
     async init() {
         let pagination: Pagination;
         [this.validators, pagination] = await this.lcdClient.staking.validators()
-        await this.anchor.store_contracts_localterra(
+        await this.lido.store_contracts_localterra(
             path.resolve(__dirname, "../../lido-cosmos-contracts/artifacts"),
         );
         const fixedFeeForInit = new Fee(6000000, "2000000uusd");
-        await this.anchor.instantiate_localterra(
+        await this.lido.instantiate_localterra(
             fixedFeeForInit,
             setTestParams(
                 this.validators_addresses[0],
@@ -169,7 +169,7 @@ export class TestStateLocalTestNet {
             ),
             this.validators_addresses
         );
-        this.basset = this.anchor.bAsset;
+        this.lasset = this.lido.lAsset;
     }
 
     async waitForJailed(name: string, threshold?: number): Promise<void> {
@@ -192,7 +192,7 @@ export class TestStateLocalTestNet {
 
 }
 
-export const get_expected_sum_from_requests = async (querier: AnchorbAssetQueryHelper, reqs: UnbondRequestsResponse, token: "stluna"): Promise<number> => {
+export const get_expected_sum_from_requests = async (querier: LidoAssetQueryHelper, reqs: UnbondRequestsResponse, token: "stluna"): Promise<number> => {
     return reqs.requests.reduce(async (acc, [batchid, amount_stluna_tokens]) => {
         const acc_sum = await acc;
         const h = await querier.all_history(1, batchid - 1);

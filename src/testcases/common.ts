@@ -1,17 +1,11 @@
-import {AutomaticTxRequest, AutomaticTxResponse, Testkit, TestkitInit} from "../testkit/testkit";
+import {AutomaticTxResponse, Testkit, TestkitInit} from "../testkit/testkit";
 import {Coin, Coins, Dec, Int, LCDClient, MnemonicKey, MsgSend, Fee, Validator, Wallet} from "@terra-money/terra.js";
-import Anchor from "../helper/spawn";
-import AnchorbAsset from "../helper/basset_helper";
-import MoneyMarket from "../helper/money_market_helper";
-import TerraSwap from "../helper/terraswap_helper";
-import AnchorToken from "../helper/anchor_token_helper";
+import Lido from "../helper/spawn";
+import LidoAsset from "../helper/lido_helper";
 import { registerChainOraclePrevote, registerChainOracleVote, defaultOraclePrice } from "../helper/oracle/chain-oracle";
 import { setTestParams } from "../parameters/contract-tests-parameteres";
-import { configureMMOracle } from "../helper/oracle/mm-oracle";
 import { MantleState } from "../mantle-querier/MantleState";
 import * as path from "path";
-import {UnbondRequestsResponse} from "../helper/types/lido_terra_hub/unbond_requests_response";
-import AnchorbAssetQueryHelper from "../helper/basset_queryhelper";
 
 export class TestState {
     testkit: Testkit
@@ -21,14 +15,10 @@ export class TestState {
     gasStation: MnemonicKey
     lcdClient: LCDClient
     wallets: Record<string, Wallet>
-    anchor: Anchor
-    basset: AnchorbAsset
-    moneyMarket: MoneyMarket
-    terraswap: TerraSwap
-    anc: AnchorToken
+    lido: Lido
+    lasset: LidoAsset
     initialPrevotes: AutomaticTxResponse[]
     initialVotes: AutomaticTxResponse[]
-    previousOracleFeed: AutomaticTxResponse
     oraclePrice: string
 
 
@@ -168,16 +158,13 @@ export class TestState {
 
         // store & instantiate contracts
         this.wallets.ownerWallet = new Wallet(this.lcdClient, this.keys.owner);
-        this.anchor = new Anchor(this.wallets.ownerWallet);
-        await this.anchor.store_contracts(
-            path.resolve(__dirname, "../../anchor-bAsset-contracts/artifacts"),
-            path.resolve(__dirname, "../../money-market-contracts/artifacts"),
-            path.resolve(__dirname, "../../terraswap/artifacts"),
-            path.resolve(__dirname, "../../anchor-token-contracts/artifacts")
+        this.lido = new Lido(this.wallets.ownerWallet);
+        await this.lido.store_contracts(
+            path.resolve(__dirname, "../../lido-cosmos-contracts/artifacts"),
         );
 
         const fixedFeeForInit = new Fee(6000000, "2000000uusd");
-        await this.anchor.instantiate(
+        await this.lido.instantiate(
             fixedFeeForInit,
             setTestParams(
                 this.validators[0].validator_address,
@@ -187,37 +174,24 @@ export class TestState {
             this.validators
         );
 
-        // register oracle price feeder
-        // this.previousOracleFeed = await this.testkit.registerAutomaticTx(
-        //     configureMMOracle(
-        //         this.keys.owner,
-        //         this.anchor.moneyMarket.contractInfo["moneymarket_oracle"].contractAddress,
-        //         this.anchor.bAsset.contractInfo["lido_terra_token"].contractAddress,
-        //         1.0
-        //     )
-        // );
 
-
-        this.basset = this.anchor.bAsset;
+        this.lasset = this.lido.lAsset;
         ////////////////////////
 
         // create mantle state
         console.log({
-            bLunaHub: this.basset.contractInfo["lido_terra_hub"].contractAddress,
-            bAssetToken: this.basset.contractInfo["lido_terra_token"].contractAddress,
-            bAssetReward: this.basset.contractInfo["lido_terra_reward"].contractAddress,
-            bAssetAirdrop:
-                this.basset.contractInfo["lido_terra_airdrop_registry"].contractAddress,
+            lidoHub: this.lasset.contractInfo["lido_terra_hub"].contractAddress,
+            stLunaToken: this.lasset.contractInfo["lido_terra_token_stluna"].contractAddress,
+            rewardsDispatcher: this.lasset.contractInfo["lido_terra_rewards_dispatcher"].contractAddress,
+            validatorsRegistry: this.lasset.contractInfo["lido_terra_validators_registry"].contractAddress
         });
 
         const mantleState = new MantleState(
             {
-                bLunaHub: this.basset.contractInfo["lido_terra_hub"].contractAddress,
-                bAssetToken: this.basset.contractInfo["lido_terra_token"].contractAddress,
-                stLunaToken: this.basset.contractInfo["lido_terra_token_stluna"].contractAddress,
-                bAssetReward: this.basset.contractInfo["lido_terra_reward"].contractAddress,
-                bAssetAirdrop:
-                    this.basset.contractInfo["lido_terra_airdrop_registry"].contractAddress,
+                lidoHub: this.lasset.contractInfo["lido_terra_hub"].contractAddress,
+                stLunaToken: this.lasset.contractInfo["lido_terra_token_stluna"].contractAddress,
+                rewardsDispatcher: this.lasset.contractInfo["lido_terra_rewards_dispatcher"].contractAddress,
+                validatorsRegistry: this.lasset.contractInfo["lido_terra_validators_registry"].contractAddress
             },
             [this.keys.aKey.accAddress, this.keys.bKey.accAddress, this.keys.cKey.accAddress],
             response.validators.map((val) => val.validator_address),

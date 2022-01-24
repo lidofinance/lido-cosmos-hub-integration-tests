@@ -1,6 +1,6 @@
 import {floateq, mustPass} from "../helper/flow/must";
 import {emptyBlockWithFixedGas} from "../helper/flow/gas-station";
-import AnchorbAssetQueryHelper from "../helper/basset_queryhelper";
+import LidoAssetQueryHelper from "../helper/lasset_queryhelper";
 import {disconnectValidator, get_expected_sum_from_requests, TestStateLocalTestNet, vals} from "./common_localtestnet";
 var assert = require('assert');
 
@@ -11,12 +11,12 @@ async function main() {
     const testState = new TestStateLocalTestNet()
     await testState.init()
 
-    const querier = new AnchorbAssetQueryHelper(
+    const querier = new LidoAssetQueryHelper(
         testState.lcdClient,
-        testState.basset,
+        testState.lasset,
     )
-    const stlunaContractAddress = testState.basset.contractInfo.lido_terra_token_stluna.contractAddress
-    await mustPass(testState.basset.add_validator(testState.wallets.ownerWallet, vals[1].address))
+    const stlunaContractAddress = testState.lasset.contractInfo.lido_terra_token_stluna.contractAddress
+    await mustPass(testState.lasset.add_validator(testState.wallets.ownerWallet, vals[1].address))
 
     const initial_uluna_balance_a = Number((await testState.wallets.a.lcd.bank.balance(testState.wallets.a.key.accAddress))[0].get("uluna").amount)
     const initial_uluna_balance_b = Number((await testState.wallets.b.lcd.bank.balance(testState.wallets.b.key.accAddress))[0].get("uluna").amount)
@@ -48,7 +48,7 @@ async function main() {
     await mustPass(emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 3))
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
-            await mustPass(testState.basset.bond_for_stluna(testState.wallets.a, 2_000_000))
+            await mustPass(testState.lasset.bond_for_stluna(testState.wallets.a, 2_000_000))
         }
     }
     // we are bonding 3 * 25 = 75 iterations by 2_000_000 uluna each, 150_000_000 in total
@@ -58,7 +58,7 @@ async function main() {
         await querier.balance_stluna(testState.wallets.a.key.accAddress),
         1e-6,
     ))
-    await mustPass(testState.basset.dispatch_rewards(testState.wallets.a))
+    await mustPass(testState.lasset.dispatch_rewards(testState.wallets.a))
     // exchange rate is growing due to reward rebonding
     console.log(stluna_exchange_rate, await querier.stluna_exchange_rate())
     assert.ok(await querier.stluna_exchange_rate() > stluna_exchange_rate)
@@ -67,7 +67,7 @@ async function main() {
 
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
-            await mustPass(testState.basset.bond_for_stluna(testState.wallets.b, 2_000_000))
+            await mustPass(testState.lasset.bond_for_stluna(testState.wallets.b, 2_000_000))
         }
     }
     // we are bonding 3 * 25 = 75 iterations by 2_000_000 uluna each, 150_000_000 in total
@@ -77,7 +77,7 @@ async function main() {
         await querier.balance_stluna(testState.wallets.b.key.accAddress),
         1e-6,
     ))
-    await mustPass(testState.basset.dispatch_rewards(testState.wallets.b))
+    await mustPass(testState.lasset.dispatch_rewards(testState.wallets.b))
     // exchange rate is growing due to reward rebonding
     assert.ok(await querier.stluna_exchange_rate() > stluna_exchange_rate)
     stluna_exchange_rate = await querier.stluna_exchange_rate()
@@ -85,7 +85,7 @@ async function main() {
 
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
-            await mustPass(testState.basset.bond_for_stluna(testState.wallets.c, 2_000_000))
+            await mustPass(testState.lasset.bond_for_stluna(testState.wallets.c, 2_000_000))
         }
     }
     // we are bonding 3 * 25 = 75 iterations by 2_000_000 uluna each, 150_000_000 in total
@@ -95,7 +95,7 @@ async function main() {
         await querier.balance_stluna(testState.wallets.c.key.accAddress),
         1e-6,
     ))
-    await mustPass(testState.basset.dispatch_rewards(testState.wallets.c))
+    await mustPass(testState.lasset.dispatch_rewards(testState.wallets.c))
     // exchange rate is growing due to reward rebonding
     assert.ok(await querier.stluna_exchange_rate() > stluna_exchange_rate)
     stluna_exchange_rate = await querier.stluna_exchange_rate()
@@ -106,64 +106,64 @@ async function main() {
     const ubond_exch_rate = await querier.stluna_exchange_rate()
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
-            await testState.basset.send_cw20_token(
+            await testState.lasset.send_cw20_token(
                 stlunaContractAddress,
                 testState.wallets.a,
                 1_000_000,
                 {unbond: {}},
-                testState.basset.contractInfo["lido_terra_hub"].contractAddress
+                testState.lasset.contractInfo["lido_terra_hub"].contractAddress
             )
         }
     }
-    await testState.basset.send_cw20_token(
+    await testState.lasset.send_cw20_token(
         stlunaContractAddress,
         testState.wallets.a,
         await querier.balance_stluna(testState.wallets.a.key.accAddress),
         {unbond: {}},
-        testState.basset.contractInfo["lido_terra_hub"].contractAddress
+        testState.lasset.contractInfo["lido_terra_hub"].contractAddress
     )
 
 
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
-            await testState.basset.send_cw20_token(
+            await testState.lasset.send_cw20_token(
                 stlunaContractAddress,
                 testState.wallets.b,
                 1_000_000,
                 {unbond: {}},
-                testState.basset.contractInfo["lido_terra_hub"].contractAddress
+                testState.lasset.contractInfo["lido_terra_hub"].contractAddress
             )
         }
     }
-    await testState.basset.send_cw20_token(
+    await testState.lasset.send_cw20_token(
         stlunaContractAddress,
         testState.wallets.b,
         await querier.balance_stluna(testState.wallets.b.key.accAddress),
         {unbond: {}},
-        testState.basset.contractInfo["lido_terra_hub"].contractAddress
+        testState.lasset.contractInfo["lido_terra_hub"].contractAddress
     )
 
 
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
-            await testState.basset.send_cw20_token(
+            await testState.lasset.send_cw20_token(
                 stlunaContractAddress,
                 testState.wallets.c,
                 1_000_000,
                 {unbond: {}},
-                testState.basset.contractInfo["lido_terra_hub"].contractAddress
+                testState.lasset.contractInfo["lido_terra_hub"].contractAddress
             )
         }
     }
     await mustPass(emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 20))
-    await testState.basset.send_cw20_token(
+    await testState.lasset.send_cw20_token(
         stlunaContractAddress,
         testState.wallets.c,
         await querier.balance_stluna(testState.wallets.c.key.accAddress),
         {unbond: {}},
-        testState.basset.contractInfo["lido_terra_hub"].contractAddress
+        testState.lasset.contractInfo["lido_terra_hub"].contractAddress
     )
-    await mustPass(testState.basset.dispatch_rewards(testState.wallets.c))
+    await mustPass(testState.lasset.dispatch_rewards(testState.wallets.c))
 
 
     //block 99 - 159
@@ -172,9 +172,9 @@ async function main() {
     const unbond_requests_b = await querier.unbond_requests(testState.wallets.b.key.accAddress)
     const unbond_requests_c = await querier.unbond_requests(testState.wallets.c.key.accAddress)
     //block 160
-    await mustPass(testState.basset.finish(testState.wallets.a))
-    await mustPass(testState.basset.finish(testState.wallets.b))
-    await mustPass(testState.basset.finish(testState.wallets.c))
+    await mustPass(testState.lasset.finish(testState.wallets.a))
+    await mustPass(testState.lasset.finish(testState.wallets.b))
+    await mustPass(testState.lasset.finish(testState.wallets.c))
 
 
     const uluna_balance_a = Number((await testState.wallets.a.lcd.bank.balance(testState.wallets.a.key.accAddress))[0].get("uluna").amount)

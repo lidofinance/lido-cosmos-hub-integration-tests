@@ -4,10 +4,10 @@ import { Addresses, Contracts, Validators } from "./types";
 import {getStlunaState} from "./stLuna";
 
 interface ContractAddresses {
-    "bLunaHub": string,
+    "lidoHub": string,
     "stLunaToken": string,
-    "bAssetReward": string,
-    "bAssetAirdrop": string,
+    "rewardsDispatcher": string,
+    "validatorsRegistry": string,
 }
 
 export class MantleState {

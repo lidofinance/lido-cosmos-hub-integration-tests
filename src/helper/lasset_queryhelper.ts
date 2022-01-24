@@ -1,23 +1,18 @@
 import {Validator as QueryValidator} from "./types/validators_registry/validator";
 import {GraphQLClient} from "graphql-request";
 import {Testkit} from "../testkit/testkit";
-import AnchorbAsset from "./basset_helper";
+import LidoAsset from "./lido_helper";
 import {AllowanceResponse} from "./types/cw20_token/allowance_response";
 import {AllAccountsResponse} from "./types/cw20_token/all_accounts_response";
 import {AllAllowancesResponse} from "./types/cw20_token/all_allowances_response";
 import {TokenInfoResponse} from "./types/cw20_token/token_info_response";
 import {MinterResponse} from "./types/cw20_token/token_init_msg";
 import {QueryMsg as ValidatorsQueryMsg} from "./types/validators_registry/query_msg";
-import {HolderResponse, HoldersResponse} from "./types/basset_reward/holders_response";
-import {QueryMsg as BlunaQueryMsg} from "./types/basset_reward/query_msg";
-import {QueryMsg as AnchotBassetHubQueryMsg} from "./types/lido_terra_hub/query_msg";
-import {StateResponse} from "./types/basset_reward/state_response";
-import {ConfigResponse} from "./types/basset_reward/config_response";
-import {State} from "./types/lido_terra_hub/state";
-import {AccruedRewardsResponse} from "./types/basset_reward/accrued_rewards_response";
-import {AllHistoryResponse} from "./types/lido_terra_hub/all_history_response";
-import {UnbondRequestsResponse} from "./types/lido_terra_hub/unbond_requests_response";
-import {WithdrawableUnbondedResponse} from "./types/lido_terra_hub/withdrawable_unbonded_response";
+import {QueryMsg as LidoHubQueryMsg} from "./types/hub/query_msg";
+import {State} from "./types/hub/state";
+import {AllHistoryResponse} from "./types/hub/all_history_response";
+import {UnbondRequestsResponse} from "./types/hub/unbond_requests_response";
+import {WithdrawableUnbondedResponse} from "./types/hub/withdrawable_unbonded_response";
 import {LCDClient} from "@terra-money/terra.js";
 import axios from "axios";
 
@@ -102,36 +97,36 @@ class TokenQuerier {
     }
 }
 
-export default class AnchorbAssetQueryHelper {
+export default class LidoAssetQueryHelper {
     testkit: Testkit
     mantleClient: GraphQLClient
-    basset: AnchorbAsset
+    lasset: LidoAsset
     stluna_token_querier: TokenQuerier
     lcd: LCDClient
 
-    constructor(lcd: LCDClient, basset: AnchorbAsset) {
+    constructor(lcd: LCDClient, lasset: LidoAsset) {
         this.lcd = lcd;
-        this.basset = basset;
-        this.stluna_token_querier = new TokenQuerier(this.basset.contractInfo.lido_terra_token_stluna.contractAddress, this.lcd)
+        this.lasset = lasset;
+        this.stluna_token_querier = new TokenQuerier(this.lasset.contractInfo.lido_terra_token_stluna.contractAddress, this.lcd)
     }
 
-    async bassethubquery(msg: AnchotBassetHubQueryMsg): Promise<any> {
+    async lassethubquery(msg: LidoHubQueryMsg): Promise<any> {
         return makeRestStoreQuery(
-            this.basset.contractInfo.lido_terra_hub.contractAddress,
+            this.lasset.contractInfo.lido_terra_hub.contractAddress,
             msg,
             this.lcd.config.URL
         )
     }
 
     async get_lido_terra_hub_state(): Promise<State> {
-        return this.bassethubquery({
+        return this.lassethubquery({
             state: {}
         }).then(r => r as State)
     }
 
     async validatorsquery(msg: ValidatorsQueryMsg): Promise<any> {
         return makeRestStoreQuery(
-            this.basset.contractInfo.lido_terra_validators_registry.contractAddress,
+            this.lasset.contractInfo.lido_terra_validators_registry.contractAddress,
             msg,
             this.lcd.config.URL
         )
@@ -193,7 +188,7 @@ export default class AnchorbAssetQueryHelper {
     }
 
     public async all_history(limit?: number, start_from?: number): Promise<AllHistoryResponse> {
-        return this.bassethubquery(
+        return this.lassethubquery(
             {
                 all_history: {
                     limit: limit,
@@ -204,7 +199,7 @@ export default class AnchorbAssetQueryHelper {
     }
 
     public async unbond_requests(address: string): Promise<UnbondRequestsResponse> {
-        return this.bassethubquery(
+        return this.lassethubquery(
             {
                 unbond_requests: {
                     address: address,
@@ -215,7 +210,7 @@ export default class AnchorbAssetQueryHelper {
 
     public async get_withdraweble_unbonded(address: string): Promise<WithdrawableUnbondedResponse> {
         const latestBlock = await this.lcd.tendermint.blockInfo()
-        return this.bassethubquery({
+        return this.lassethubquery({
             withdrawable_unbonded: {
                 address: address,
                 block_time: Math.trunc(new Date(latestBlock.block.header.time).getTime() / 1000),

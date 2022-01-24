@@ -65,7 +65,7 @@ export const getCoreState = async (
     `,
     {
       validatorAddr: validators[0],
-      delegatorAddr: contracts.bLunaHub,
+      delegatorAddr: contracts.lidoHub,
     },
     client
   )
