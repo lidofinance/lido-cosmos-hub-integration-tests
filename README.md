@@ -9,7 +9,7 @@ yarn install
 2) Put lido lido-cosmos-hub-contracts artifacts in `./lido-cosmos-contracts/artifacts` dir
 3) Clone locale terra `https://github.com/terra-money/LocalTerra`
 4) Update some params to speed up localterra network
-    1) file `./config/genesis.json` you could update `unbonding_time` to the same value, bAssetHubContract has, lets say - 20s
+    1) file `./config/genesis.json` you could update `unbonding_time` to the same value, lidoHubContract has, lets say - 20s
     2) file `./config/config.toml` timeout parameters in `consensus` block
     ```
     + timeout_propose = "200ms"
@@ -36,7 +36,7 @@ The main difference between mantle sdk testkit and localterra testkit is in mant
 ```shell
 yarn install
 ```
-2) Put lido bAsset artifacts in `./lido-cosmos-contracts/artifacts` dir
+2) Put lido artifacts in `./lido-cosmos-contracts/artifacts` dir
 3) To start the 4-set validators environment - run `make start` in the `testkit` dir. Keep in mind, `http://192.168.10.2:1317/oracle/denoms/exchange_rates` starts work after 30-45 blocks(and the same amount of seconds), update_global_index needs the endpoint to work, for most of the testcases this does not matter, but if you want to call update_global_index soon after test starts, give some time to env get ready, to check oracles endpoint you can run 
 ```shell
 $ make oracle_status
