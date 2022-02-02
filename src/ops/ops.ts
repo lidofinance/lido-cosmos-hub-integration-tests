@@ -1,4 +1,4 @@
-import { StdFee, Wallet } from "@terra-money/terra.js";
+import { Fee, Wallet } from "@terra-money/terra.js";
 import * as path from 'path'
 import Lido from "../helper/spawn";
 import { Contracts } from "../mantle-querier/types"
@@ -10,7 +10,7 @@ export async function lido(owner: Wallet): Promise<Contracts> {
     const validators = await owner.lcd.staking.validators()
 
     const lido = new Lido(owner)
-    const fixedFeeForInit = new StdFee(6000000, "2000000uusd")
+    const fixedFeeForInit = new Fee(6000000, "2000000uusd")
     await lido.store_contracts(
         path.resolve(locationBase, './lido-cosmos-contracts/artifacts'),
     )

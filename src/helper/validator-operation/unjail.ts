@@ -1,4 +1,4 @@
-import { MsgUnjail, Wallet, StdFee } from "@terra-money/terra.js";
+import { MsgUnjail, Wallet } from "@terra-money/terra.js";
 import { send_transaction } from "../flow/execution";
 
 export const unjail = async (valWallet: Wallet) => {

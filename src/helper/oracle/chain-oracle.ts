@@ -1,4 +1,4 @@
-import { MsgAggregateExchangeRateVote, StdFee } from "@terra-money/terra.js";
+import { MsgAggregateExchangeRateVote, Fee } from "@terra-money/terra.js";
 import { Testkit } from "../../testkit/testkit";
 
 export const defaultOraclePrice =
@@ -25,7 +25,7 @@ export const registerChainOraclePrevote = (
     period: 1,
     startAt: startAt,
     msgs: [prevote],
-    fee: new StdFee(10000000, "1000000uusd"),
+    fee: new Fee(10000000, "1000000uusd"),
   });
 };
 
@@ -48,6 +48,6 @@ export const registerChainOracleVote = (
     period: 1,
     startAt: startAt,
     msgs: [vote],
-    fee: new StdFee(10000000, "1000000uusd"),
+    fee: new Fee(10000000, "1000000uusd"),
   });
 };

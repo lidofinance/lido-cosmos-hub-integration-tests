@@ -1,5 +1,5 @@
 import { Testkit } from "../../testkit/testkit";
-import { MsgExecuteContract, StdFee, Key } from "@terra-money/terra.js";
+import { MsgExecuteContract, Fee, Key } from "@terra-money/terra.js";
 
 export const configureMMOracle = (
   owner: Key,
@@ -17,6 +17,6 @@ export const configureMMOracle = (
         },
       }),
     ],
-    fee: new StdFee(10000000, "1000000uusd"),
+    fee: new Fee(10000000, "1000000uusd"),
   });
 };

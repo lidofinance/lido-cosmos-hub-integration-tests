@@ -1,4 +1,4 @@
-import { Coin, LCDClient, MnemonicKey, Msg, StdFee, Validator, Wallet } from "@terra-money/terra.js";
+import { Coin, LCDClient, MnemonicKey, Msg, Fee, Validator, Wallet } from "@terra-money/terra.js";
 import axios, { AxiosInstance } from 'axios'
 
 export class Testkit {
@@ -14,7 +14,7 @@ export class Testkit {
 
     automaticTxQueue: {
         wallet: Wallet,
-        fee: StdFee | undefined,
+        fee: Fee | undefined,
         msgs: Msg[]
     }[] = []
 
@@ -294,7 +294,7 @@ export interface AutomaticTxConfig {
     accountName: string,
     period: number,
     msgs: Msg[],
-    fee: StdFee,
+    fee: Fee,
     offset?: number,
     startAt?: number,
 }
@@ -303,7 +303,7 @@ export interface AutomaticTxRequest {
     account_name: string
     period: string
     msgs: Msg.Data[]
-    fee: StdFee.Data,
+    fee: Fee.Data,
     offset?: string,
     start_at?: string,
 }
@@ -313,7 +313,7 @@ export interface AutomaticTxResponse {
     account_name: string
     period: string
     msgs: Msg.Data[]
-    fee: StdFee.Data,
+    fee: Fee.Data,
     offset?: string,
     start_at?: string,
 }
