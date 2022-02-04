@@ -2,6 +2,7 @@ import {AutomaticTxResponse, Testkit, TestkitInit} from "../testkit/testkit";
 import {Coin, Coins, Dec, Int, LCDClient, MnemonicKey, MsgSend, Fee, Validator, Wallet} from "@terra-money/terra.js";
 import Lido from "../helper/spawn";
 import LidoAsset from "../helper/lido_helper";
+import { atomDenom } from "../helper/types/coin";
 import { registerChainOraclePrevote, registerChainOracleVote, defaultOraclePrice } from "../helper/oracle/chain-oracle";
 import { setTestParams } from "../parameters/contract-tests-parameteres";
 import { MantleState } from "../mantle-querier/MantleState";
@@ -68,22 +69,22 @@ export class TestState {
             validators: [
                 Testkit.validatorInitRequest(
                     "valA",
-                    new Coin("uluna", new Int(1000000000000)),
+                    new Coin(atomDenom, new Int(1000000000000)),
                     new Validator.CommissionRates(new Dec(0), new Dec(1), new Dec(0))
                 ),
                 Testkit.validatorInitRequest(
                     "valB",
-                    new Coin("uluna", new Int(1000000000000)),
+                    new Coin(atomDenom, new Int(1000000000000)),
                     new Validator.CommissionRates(new Dec(0), new Dec(1), new Dec(0))
                 ),
                 Testkit.validatorInitRequest(
                     "valC",
-                    new Coin("uluna", new Int(1000000000000)),
+                    new Coin(atomDenom, new Int(1000000000000)),
                     new Validator.CommissionRates(new Dec(0), new Dec(1), new Dec(0))
                 ),
                 Testkit.validatorInitRequest(
                     "valD",
-                    new Coin("uluna", new Int(1000000000000)),
+                    new Coin(atomDenom, new Int(1000000000000)),
                     new Validator.CommissionRates(new Dec(0), new Dec(1), new Dec(0))
                 ),
             ],
@@ -181,7 +182,7 @@ export class TestState {
         // create mantle state
         console.log({
             lidoHub: this.lasset.contractInfo["lido_terra_hub"].contractAddress,
-            stLunaToken: this.lasset.contractInfo["lido_terra_token_stluna"].contractAddress,
+            stAtomToken: this.lasset.contractInfo["lido_terra_token_statom"].contractAddress,
             rewardsDispatcher: this.lasset.contractInfo["lido_terra_rewards_dispatcher"].contractAddress,
             validatorsRegistry: this.lasset.contractInfo["lido_terra_validators_registry"].contractAddress
         });
@@ -189,7 +190,7 @@ export class TestState {
         const mantleState = new MantleState(
             {
                 lidoHub: this.lasset.contractInfo["lido_terra_hub"].contractAddress,
-                stLunaToken: this.lasset.contractInfo["lido_terra_token_stluna"].contractAddress,
+                stAtomToken: this.lasset.contractInfo["lido_terra_token_statom"].contractAddress,
                 rewardsDispatcher: this.lasset.contractInfo["lido_terra_rewards_dispatcher"].contractAddress,
                 validatorsRegistry: this.lasset.contractInfo["lido_terra_validators_registry"].contractAddress
             },

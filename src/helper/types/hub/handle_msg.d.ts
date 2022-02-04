@@ -9,10 +9,9 @@ export type HandleMsg =
   | {
       update_config: {
         airdrop_registry_contract?: HumanAddr | null;
-        bluna_token_contract?: HumanAddr | null;
         owner?: HumanAddr | null;
         rewards_dispatcher_contract?: HumanAddr | null;
-        stluna_token_contract?: HumanAddr | null;
+        statom_token_contract?: HumanAddr | null;
         validators_registry_contract?: HumanAddr | null;
         [k: string]: unknown;
       };
@@ -35,7 +34,7 @@ export type HandleMsg =
       [k: string]: unknown;
     }
   | {
-      bond_for_st_luna: {
+      bond_for_st_atom: {
         [k: string]: unknown;
       };
       [k: string]: unknown;

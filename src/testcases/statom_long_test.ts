@@ -2,6 +2,7 @@ import {floateq, mustPass} from "../helper/flow/must";
 import {emptyBlockWithFixedGas} from "../helper/flow/gas-station";
 import LidoAssetQueryHelper from "../helper/lasset_queryhelper";
 import {disconnectValidator, get_expected_sum_from_requests, TestStateLocalTestNet, vals} from "./common_localtestnet";
+import { atomDenom } from "../helper/types/coin";
 var assert = require('assert');
 
 
@@ -15,14 +16,14 @@ async function main() {
         testState.lcdClient,
         testState.lasset,
     )
-    const stlunaContractAddress = testState.lasset.contractInfo.lido_terra_token_stluna.contractAddress
+    const statomContractAddress = testState.lasset.contractInfo.lido_terra_token_statom.contractAddress
     await mustPass(testState.lasset.add_validator(testState.wallets.ownerWallet, vals[1].address))
 
-    const initial_uluna_balance_a = Number((await testState.wallets.a.lcd.bank.balance(testState.wallets.a.key.accAddress))[0].get("uluna").amount)
-    const initial_uluna_balance_b = Number((await testState.wallets.b.lcd.bank.balance(testState.wallets.b.key.accAddress))[0].get("uluna").amount)
-    const initial_uluna_balance_c = Number((await testState.wallets.c.lcd.bank.balance(testState.wallets.c.key.accAddress))[0].get("uluna").amount)
+    const initial_uatom_balance_a = Number((await testState.wallets.a.lcd.bank.balance(testState.wallets.a.key.accAddress))[0].get(atomDenom).amount)
+    const initial_uatom_balance_b = Number((await testState.wallets.b.lcd.bank.balance(testState.wallets.b.key.accAddress))[0].get(atomDenom).amount)
+    const initial_uatom_balance_c = Number((await testState.wallets.c.lcd.bank.balance(testState.wallets.c.key.accAddress))[0].get(atomDenom).amount)
 
-    const initial_uluna_balance_lido_fee = Number((await testState.wallets.lido_fee.lcd.bank.balance(testState.wallets.lido_fee.key.accAddress))[0].get("uluna").amount)
+    const initial_uatom_balance_lido_fee = Number((await testState.wallets.lido_fee.lcd.bank.balance(testState.wallets.lido_fee.key.accAddress))[0].get(atomDenom).amount)
 
 
     //block 67
@@ -41,73 +42,73 @@ async function main() {
 
 
 
-    let stluna_exchange_rate = await querier.stluna_exchange_rate()
-    assert.equal(1, stluna_exchange_rate)
+    let statom_exchange_rate = await querier.statom_exchange_rate()
+    assert.equal(1, statom_exchange_rate)
     //block 92 - 94
     //bond
     await mustPass(emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 3))
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
-            await mustPass(testState.lasset.bond_for_stluna(testState.wallets.a, 2_000_000))
+            await mustPass(testState.lasset.bond_for_statom(testState.wallets.a, 2_000_000))
         }
     }
-    // we are bonding 3 * 25 = 75 iterations by 2_000_000 uluna each, 150_000_000 in total
-    // we are expecting to have (150_000_000 / stluna_exchange_rate) stluna tokens
+    // we are bonding 3 * 25 = 75 iterations by 2_000_000 uatom each, 150_000_000 in total
+    // we are expecting to have (150_000_000 / statom_exchange_rate) statom tokens
     assert.ok(floateq(
-        150_000_000 / stluna_exchange_rate,
-        await querier.balance_stluna(testState.wallets.a.key.accAddress),
+        150_000_000 / statom_exchange_rate,
+        await querier.balance_statom(testState.wallets.a.key.accAddress),
         1e-6,
     ))
     await mustPass(testState.lasset.dispatch_rewards(testState.wallets.a))
     // exchange rate is growing due to reward rebonding
-    console.log(stluna_exchange_rate, await querier.stluna_exchange_rate())
-    assert.ok(await querier.stluna_exchange_rate() > stluna_exchange_rate)
-    stluna_exchange_rate = await querier.stluna_exchange_rate()
+    console.log(statom_exchange_rate, await querier.statom_exchange_rate())
+    assert.ok(await querier.statom_exchange_rate() > statom_exchange_rate)
+    statom_exchange_rate = await querier.statom_exchange_rate()
 
 
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
-            await mustPass(testState.lasset.bond_for_stluna(testState.wallets.b, 2_000_000))
+            await mustPass(testState.lasset.bond_for_statom(testState.wallets.b, 2_000_000))
         }
     }
-    // we are bonding 3 * 25 = 75 iterations by 2_000_000 uluna each, 150_000_000 in total
-    // we are expecting to have (150_000_000 / stluna_exchange_rate) stluna tokens
+    // we are bonding 3 * 25 = 75 iterations by 2_000_000 uatom each, 150_000_000 in total
+    // we are expecting to have (150_000_000 / statom_exchange_rate) statom tokens
     assert.ok(floateq(
-        150_000_000 / stluna_exchange_rate,
-        await querier.balance_stluna(testState.wallets.b.key.accAddress),
+        150_000_000 / statom_exchange_rate,
+        await querier.balance_statom(testState.wallets.b.key.accAddress),
         1e-6,
     ))
     await mustPass(testState.lasset.dispatch_rewards(testState.wallets.b))
     // exchange rate is growing due to reward rebonding
-    assert.ok(await querier.stluna_exchange_rate() > stluna_exchange_rate)
-    stluna_exchange_rate = await querier.stluna_exchange_rate()
+    assert.ok(await querier.statom_exchange_rate() > statom_exchange_rate)
+    statom_exchange_rate = await querier.statom_exchange_rate()
 
 
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
-            await mustPass(testState.lasset.bond_for_stluna(testState.wallets.c, 2_000_000))
+            await mustPass(testState.lasset.bond_for_statom(testState.wallets.c, 2_000_000))
         }
     }
-    // we are bonding 3 * 25 = 75 iterations by 2_000_000 uluna each, 150_000_000 in total
-    // we are expecting to have (150_000_000 / stluna_exchange_rate) stluna tokens
+    // we are bonding 3 * 25 = 75 iterations by 2_000_000 uatom each, 150_000_000 in total
+    // we are expecting to have (150_000_000 / statom_exchange_rate) statom tokens
     assert.ok(floateq(
-        150_000_000 / stluna_exchange_rate,
-        await querier.balance_stluna(testState.wallets.c.key.accAddress),
+        150_000_000 / statom_exchange_rate,
+        await querier.balance_statom(testState.wallets.c.key.accAddress),
         1e-6,
     ))
     await mustPass(testState.lasset.dispatch_rewards(testState.wallets.c))
     // exchange rate is growing due to reward rebonding
-    assert.ok(await querier.stluna_exchange_rate() > stluna_exchange_rate)
-    stluna_exchange_rate = await querier.stluna_exchange_rate()
+    assert.ok(await querier.statom_exchange_rate() > statom_exchange_rate)
+    statom_exchange_rate = await querier.statom_exchange_rate()
 
     //block 95
     await mustPass(emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 50))
 
-    const ubond_exch_rate = await querier.stluna_exchange_rate()
+    const ubond_exch_rate = await querier.statom_exchange_rate()
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
             await testState.lasset.send_cw20_token(
-                stlunaContractAddress,
+                statomContractAddress,
                 testState.wallets.a,
                 1_000_000,
                 {unbond: {}},
@@ -116,9 +117,9 @@ async function main() {
         }
     }
     await testState.lasset.send_cw20_token(
-        stlunaContractAddress,
+        statomContractAddress,
         testState.wallets.a,
-        await querier.balance_stluna(testState.wallets.a.key.accAddress),
+        await querier.balance_statom(testState.wallets.a.key.accAddress),
         {unbond: {}},
         testState.lasset.contractInfo["lido_terra_hub"].contractAddress
     )
@@ -127,7 +128,7 @@ async function main() {
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
             await testState.lasset.send_cw20_token(
-                stlunaContractAddress,
+                statomContractAddress,
                 testState.wallets.b,
                 1_000_000,
                 {unbond: {}},
@@ -136,9 +137,9 @@ async function main() {
         }
     }
     await testState.lasset.send_cw20_token(
-        stlunaContractAddress,
+        statomContractAddress,
         testState.wallets.b,
-        await querier.balance_stluna(testState.wallets.b.key.accAddress),
+        await querier.balance_statom(testState.wallets.b.key.accAddress),
         {unbond: {}},
         testState.lasset.contractInfo["lido_terra_hub"].contractAddress
     )
@@ -147,7 +148,7 @@ async function main() {
     for (j = 0; j < 3; j++) {
         for (i = 0; i < 25; i++) {
             await testState.lasset.send_cw20_token(
-                stlunaContractAddress,
+                statomContractAddress,
                 testState.wallets.c,
                 1_000_000,
                 {unbond: {}},
@@ -157,9 +158,9 @@ async function main() {
     }
     await mustPass(emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 20))
     await testState.lasset.send_cw20_token(
-        stlunaContractAddress,
+        statomContractAddress,
         testState.wallets.c,
-        await querier.balance_stluna(testState.wallets.c.key.accAddress),
+        await querier.balance_statom(testState.wallets.c.key.accAddress),
         {unbond: {}},
         testState.lasset.contractInfo["lido_terra_hub"].contractAddress
     )
@@ -177,29 +178,29 @@ async function main() {
     await mustPass(testState.lasset.finish(testState.wallets.c))
 
 
-    const uluna_balance_a = Number((await testState.wallets.a.lcd.bank.balance(testState.wallets.a.key.accAddress))[0].get("uluna").amount)
-    const uluna_balance_b = Number((await testState.wallets.b.lcd.bank.balance(testState.wallets.b.key.accAddress))[0].get("uluna").amount)
-    const uluna_balance_c = Number((await testState.wallets.c.lcd.bank.balance(testState.wallets.c.key.accAddress))[0].get("uluna").amount)
-    const uluna_balance_lido_fee = Number((await testState.wallets.lido_fee.lcd.bank.balance(testState.wallets.lido_fee.key.accAddress))[0].get("uluna").amount)
+    const uatom_balance_a = Number((await testState.wallets.a.lcd.bank.balance(testState.wallets.a.key.accAddress))[0].get(atomDenom).amount)
+    const uatom_balance_b = Number((await testState.wallets.b.lcd.bank.balance(testState.wallets.b.key.accAddress))[0].get(atomDenom).amount)
+    const uatom_balance_c = Number((await testState.wallets.c.lcd.bank.balance(testState.wallets.c.key.accAddress))[0].get(atomDenom).amount)
+    const uatom_balance_lido_fee = Number((await testState.wallets.lido_fee.lcd.bank.balance(testState.wallets.lido_fee.key.accAddress))[0].get(atomDenom).amount)
 
-    const actual_profit_sum_a = (Number(uluna_balance_a) - initial_uluna_balance_a)
-    const actual_profit_sum_b = (Number(uluna_balance_b) - initial_uluna_balance_b)
-    const actual_profit_sum_c = (Number(uluna_balance_c) - initial_uluna_balance_c)
-    // we have unbonded all our stluna tokens, we have withdrawed(testState.basset.finish) all uluna
+    const actual_profit_sum_a = (Number(uatom_balance_a) - initial_uatom_balance_a)
+    const actual_profit_sum_b = (Number(uatom_balance_b) - initial_uatom_balance_b)
+    const actual_profit_sum_c = (Number(uatom_balance_c) - initial_uatom_balance_c)
+    // we have unbonded all our statom tokens, we have withdrawed(testState.basset.finish) all uatom
     // our profit is "withdrawal amount" - "bonded amount"
-    const expected_profit_sum_a = await get_expected_sum_from_requests(querier, unbond_requests_a, "stluna") - 150_000_000
-    const expected_profit_sum_b = await get_expected_sum_from_requests(querier, unbond_requests_b, "stluna") - 150_000_000
-    const expected_profit_sum_c = await get_expected_sum_from_requests(querier, unbond_requests_c, "stluna") - 150_000_000
+    const expected_profit_sum_a = await get_expected_sum_from_requests(querier, unbond_requests_a) - 150_000_000
+    const expected_profit_sum_b = await get_expected_sum_from_requests(querier, unbond_requests_b) - 150_000_000
+    const expected_profit_sum_c = await get_expected_sum_from_requests(querier, unbond_requests_c) - 150_000_000
     // due to js float64 math precision we have to set the precision value = 1e-3, i.e. 0.1%
     assert.ok(floateq(expected_profit_sum_a, actual_profit_sum_a, 1e-3))
     assert.ok(floateq(expected_profit_sum_b, actual_profit_sum_b, 1e-3))
     assert.ok(floateq(expected_profit_sum_c, actual_profit_sum_c, 1e-3))
-    assert.ok(uluna_balance_a > initial_uluna_balance_a)
-    assert.ok(uluna_balance_b > initial_uluna_balance_b)
-    assert.ok(uluna_balance_c > initial_uluna_balance_c)
+    assert.ok(uatom_balance_a > initial_uatom_balance_a)
+    assert.ok(uatom_balance_b > initial_uatom_balance_b)
+    assert.ok(uatom_balance_c > initial_uatom_balance_c)
 
 
-    assert.ok(uluna_balance_lido_fee > initial_uluna_balance_lido_fee)
+    assert.ok(uatom_balance_lido_fee > initial_uatom_balance_lido_fee)
 
 }
 

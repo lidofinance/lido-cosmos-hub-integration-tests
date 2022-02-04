@@ -1,5 +1,6 @@
 import { CustomInstantiationParam } from "../helper/spawn";
 import { ValAddress } from "@terra-money/terra.js";
+import { atomDenom } from "./../helper/types/coin"
 
 export const setTestParams = (
   validator: ValAddress,
@@ -10,11 +11,11 @@ export const setTestParams = (
     testAccount: testAccount,
     lasset: {
       epoch_period: 10,
-      underlying_coin_denom: "uluna",
+      underlying_coin_denom: atomDenom,
       unbonding_period: 10,
       peg_recovery_fee: "0.001",
       er_threshold: "1.0",
-      reward_denom: "uusd",
+      reward_denom: atomDenom,
       validator: validator, // for tequila
       lido_fee_address: lido_fee_address,
     },

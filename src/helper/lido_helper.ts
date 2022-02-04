@@ -9,10 +9,11 @@ import {
 } from "@terra-money/terra.js";
 import * as fs from "fs";
 import {execute, instantiate, send_transaction} from "./flow/execution";
+import { atomDenom } from "./types/coin";
 
 const contracts = [
     "lido_terra_hub",
-    "lido_terra_token_stluna",
+    "lido_terra_token_statom",
     "lido_terra_rewards_dispatcher",
     "lido_terra_validators_registry",
 ];
@@ -86,7 +87,7 @@ export default class LidoAsset {
         );
     }
 
-    public async instantiate_st_luna(
+    public async instantiate_st_atom(
         sender: Wallet,
         params: {
             name?: string,
@@ -100,7 +101,7 @@ export default class LidoAsset {
     ): Promise<void> {
         const init = await instantiate(
             sender,
-            this.contractInfo.lido_terra_token_stluna.codeId,
+            this.contractInfo.lido_terra_token_statom.codeId,
             {
                 name: params.name || "test_name",
                 symbol: params.symbol || "AAA",
@@ -116,10 +117,10 @@ export default class LidoAsset {
         }
         const contractAddress =
             init.logs[0].eventsByType.instantiate_contract.contract_address[0];
-        this.contractInfo.lido_terra_token_stluna.contractAddress = contractAddress;
+        this.contractInfo.lido_terra_token_statom.contractAddress = contractAddress;
 
         console.log(
-            `lido_terra_token_stluna: { codeId: ${this.contractInfo.lido_terra_token_stluna.codeId}, contractAddress: "${this.contractInfo.lido_terra_token_stluna.contractAddress}"},`
+            `lido_terra_token_statom: { codeId: ${this.contractInfo.lido_terra_token_statom.codeId}, contractAddress: "${this.contractInfo.lido_terra_token_statom.contractAddress}"},`
         );
     }
 
@@ -136,7 +137,7 @@ export default class LidoAsset {
             this.contractInfo.lido_terra_rewards_dispatcher.codeId,
             {
                 hub_contract: params.hub_contract || this.contractInfo.lido_terra_hub.contractAddress,
-                stluna_reward_denom: "uluna",
+                statom_reward_denom: atomDenom,
                 //FIX: change to real fee address?
                 lido_fee_address: params.lido_fee_address || this.contractInfo["lido_terra_token"].contractAddress,
                 lido_fee_rate: "0.005",
@@ -205,7 +206,7 @@ export default class LidoAsset {
             reward_address?: string;
             validators_registry?: string;
             rewards_dispatcher_contract?: string;
-            stluna_token_contract?: string,
+            statom_token_contract?: string,
         },
         fee?: Fee
     ) {
@@ -216,7 +217,7 @@ export default class LidoAsset {
                 update_config: {
                     owner: undefined,
                     rewards_dispatcher_contract: params.rewards_dispatcher_contract || `${this.contractInfo["lido_terra_rewards_dispatcher"].contractAddress}`,
-                    stluna_token_contract: params.stluna_token_contract || `${this.contractInfo["lido_terra_token_stluna"].contractAddress}`,
+                    statom_token_contract: params.statom_token_contract || `${this.contractInfo["lido_terra_token_statom"].contractAddress}`,
                     validators_registry_contract: params.validators_registry || `${this.contractInfo.lido_terra_validators_registry.contractAddress}`,
                 },
             },
@@ -283,86 +284,23 @@ export default class LidoAsset {
         }
     }
 
-    public async bond(
+    public async bond_for_statom(
         sender: Wallet,
         amount: number,
     ): Promise<void> {
-        const coin = new Coin("uluna", amount);
+        const coin = new Coin(atomDenom, amount);
         const coins = new Coins([coin]);
         const contract = this.contractInfo["lido_terra_hub"].contractAddress;
         const bondExecution = await execute(
             sender,
             contract,
             {
-                bond: {},
+                bond_for_st_atom: {},
             },
             coins
         );
         if (isTxError(bondExecution)) {
             throw new Error(`Couldn't run: ${bondExecution.raw_log}`);
-        }
-    }
-
-    public async bond_for_stluna(
-        sender: Wallet,
-        amount: number,
-    ): Promise<void> {
-        const coin = new Coin("uluna", amount);
-        const coins = new Coins([coin]);
-        const contract = this.contractInfo["lido_terra_hub"].contractAddress;
-        const bondExecution = await execute(
-            sender,
-            contract,
-            {
-                bond_for_st_luna: {},
-            },
-            coins
-        );
-        if (isTxError(bondExecution)) {
-            throw new Error(`Couldn't run: ${bondExecution.raw_log}`);
-        }
-    }
-    public async convert_stluna_to_bluna(
-        sender: Wallet,
-        amount: number,
-    ): Promise<void> {
-        const coin = new Coin("uluna", amount);
-        const coins = new Coins([coin]);
-        const contract = this.contractInfo["lido_terra_token_stluna"].contractAddress;
-        const sendExecuttion = await execute(
-            sender,
-            contract,
-            {
-                send: {
-                    contract: this.contractInfo["lido_terra_hub"].contractAddress,
-                    amount: `${amount}`,
-                    msg: Buffer.from(JSON.stringify({convert: {}})).toString("base64"),
-                },
-            });
-        if (isTxError(sendExecuttion)) {
-            throw new Error(`Couldn't run: ${sendExecuttion.raw_log}`);
-        }
-    }
-
-    public async convert_bluna_to_stluna(
-        sender: Wallet,
-        amount: number,
-    ): Promise<void> {
-        const coin = new Coin("uluna", amount);
-        const coins = new Coins([coin]);
-        const contract = this.contractInfo["lido_terra_token"].contractAddress;
-        const sendExecuttion = await execute(
-            sender,
-            contract,
-            {
-                send: {
-                    contract: this.contractInfo["lido_terra_hub"].contractAddress,
-                    amount: `${amount}`,
-                    msg: Buffer.from(JSON.stringify({convert: {}})).toString("base64"),
-                },
-            });
-        if (isTxError(sendExecuttion)) {
-            throw new Error(`Couldn't run: ${sendExecuttion.raw_log}`);
         }
     }
 
@@ -407,7 +345,7 @@ export default class LidoAsset {
             {
                 update_params: {
                     epoch_period: params?.epoch_period || 30,
-                    underlying_coin_denom: params?.underlying_coin_denom || "uluna",
+                    underlying_coin_denom: params?.underlying_coin_denom || atomDenom,
                     unbonding_period: params?.unbonding_period || 211,
                     peg_recovery_fee: params?.peg_recovery_fee || "0.001",
                     er_threshold: params?.er_threshold || "1",
@@ -459,19 +397,6 @@ export default class LidoAsset {
         if (isTxError(finishExe)) {
             throw new Error(`Couldn't run: ${finishExe.raw_log}`);
         }
-    }
-
-    public async update_global_index_with_result(sender: Wallet): Promise<ReturnType<typeof send_transaction>> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
-        const finishExe = await execute(sender, contract, {
-            update_global_index: {
-                // airdrop_hooks: null,
-            },
-        });
-        if (isTxError(finishExe)) {
-            throw new Error(`Couldn't run: ${finishExe.raw_log}`);
-        }
-        return finishExe
     }
 
     public async slashing(sender: Wallet): Promise<void> {

@@ -6,6 +6,7 @@ import {
 import * as fs from "fs";
 import * as path from "path";
 import { Coin, Dec, Int, MnemonicKey, Validator } from "@terra-money/terra.js";
+import { atomDenom } from "../helper/types/coin";
 
 const genesis = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "./genesis.json")).toString()
@@ -27,17 +28,17 @@ Promise.resolve()
       validators: [
         validatorInitRequest(
           "walletA",
-          new Coin("uluna", new Int(1000000000)),
+          new Coin(atomDenom, new Int(1000000000)),
           new Validator.CommissionRates(new Dec(0), new Dec(1), new Dec(0))
         ),
         validatorInitRequest(
           "walletB",
-          new Coin("uluna", new Int(1000000000)),
+          new Coin(atomDenom, new Int(1000000000)),
           new Validator.CommissionRates(new Dec(0), new Dec(1), new Dec(0))
         ),
         validatorInitRequest(
           "walletC",
-          new Coin("uluna", new Int(1000000000)),
+          new Coin(atomDenom, new Int(1000000000)),
           new Validator.CommissionRates(new Dec(0), new Dec(1), new Dec(0))
         ),
       ],

@@ -1,6 +1,6 @@
 export interface Contracts {
   lidoHub: string,
-  stLunaToken: string,
+  stAtomToken: string,
   rewardsDispatcher: string,
   validatorsRegistry: string
 }

@@ -4,6 +4,7 @@ import {SignatureV2} from "@terra-money/terra.js/dist/core/SignatureV2";
 import {execute} from "../helper/flow/execution";
 import {TestState} from "../testcases/common";
 import {get_redelegations, Validator} from "./redelegations";
+import { atomDenom } from "../helper/types/coin";
 
 const incoming_redelegations_inprogress = async (
     lcd: LCDClient,
@@ -35,7 +36,7 @@ export const redistribute = async (
     for (let i = 0; i < redelegations.length; i++) {
 
         let r = redelegations[i]
-        await redelegate_proxy_multisig(lcd, hubContract, multisigPubkey, keys, r.srcVal, [[r.dstVal, new Coin("uluna", r.amount)]])
+        await redelegate_proxy_multisig(lcd, hubContract, multisigPubkey, keys, r.srcVal, [[r.dstVal, new Coin(atomDenom, r.amount)]])
     }
 }
 

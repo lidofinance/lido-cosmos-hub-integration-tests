@@ -19,12 +19,9 @@ export interface AllHistoryResponse {
 
 export interface UnbondHistory {
   batch_id: number;
-  bluna_amount: Uint128;
-  bluna_applied_exchange_rate: Decimal;
-  bluna_withdraw_rate: Decimal;
   released: boolean;
-  stluna_amount: Uint128;
-  stluna_applied_exchange_rate: Decimal;
-  stluna_withdraw_rate: Decimal;
+  statom_amount: Uint128;
+  statom_applied_exchange_rate: Decimal;
+  statom_withdraw_rate: Decimal;
   time: number;
 }

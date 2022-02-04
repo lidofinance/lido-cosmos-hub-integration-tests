@@ -14,10 +14,9 @@ export type Binary = string;
 
 export interface Config {
   airdrop_registry_contract?: Binary | null;
-  bluna_token_contract?: Binary | null;
   creator: Binary;
   reward_dispatcher_contract?: Binary | null;
-  stluna_token_contract?: Binary | null;
+  statom_token_contract?: Binary | null;
   validators_registry_contract?: Binary | null;
   [k: string]: unknown;
 }

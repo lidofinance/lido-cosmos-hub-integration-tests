@@ -2,6 +2,7 @@ import { Fee, Wallet } from "@terra-money/terra.js";
 import * as path from 'path'
 import Lido from "../helper/spawn";
 import { Contracts } from "../mantle-querier/types"
+import { atomDenom } from "./../helper/types/coin"
 
 const locationBase = path.resolve(__dirname, "../../")
 
@@ -18,11 +19,11 @@ export async function lido(owner: Wallet): Promise<Contracts> {
     await lido.instantiate(fixedFeeForInit, {
         lasset: {
             epoch_period: 12345,
-            underlying_coin_denom: "uluna",
+            underlying_coin_denom: atomDenom,
             unbonding_period: 86415,
             peg_recovery_fee: "0.001",
             er_threshold: "1.0",
-            reward_denom: "uusd",
+            reward_denom: atomDenom,
         },
         testAccount: owner.key.accAddress
     })
@@ -37,7 +38,7 @@ export async function lido(owner: Wallet): Promise<Contracts> {
 
     return {
         "lidoHub": basset.contractInfo["lido_terra_hub"].contractAddress,
-        "stLunaToken": basset.contractInfo["lido_terra_token_stluna"].contractAddress,
+        "stAtomToken": basset.contractInfo["lido_terra_token_statom"].contractAddress,
         "rewardsDispatcher": basset.contractInfo["lido_terra_rewards_dispatcher"].contractAddress,
         "validatorsRegistry": basset.contractInfo["lido_terra_validators_registry"].contractAddress,
     }
