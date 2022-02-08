@@ -181,18 +181,18 @@ export class TestState {
 
         // create mantle state
         console.log({
-            lidoHub: this.lasset.contractInfo["lido_terra_hub"].contractAddress,
-            stAtomToken: this.lasset.contractInfo["lido_terra_token_statom"].contractAddress,
-            rewardsDispatcher: this.lasset.contractInfo["lido_terra_rewards_dispatcher"].contractAddress,
-            validatorsRegistry: this.lasset.contractInfo["lido_terra_validators_registry"].contractAddress
+            lidoHub: this.lasset.contractInfo["lido_cosmos_hub"].contractAddress,
+            stAtomToken: this.lasset.contractInfo["lido_cosmos_token_statom"].contractAddress,
+            rewardsDispatcher: this.lasset.contractInfo["lido_cosmos_rewards_dispatcher"].contractAddress,
+            validatorsRegistry: this.lasset.contractInfo["lido_cosmos_validators_registry"].contractAddress
         });
 
         const mantleState = new MantleState(
             {
-                lidoHub: this.lasset.contractInfo["lido_terra_hub"].contractAddress,
-                stAtomToken: this.lasset.contractInfo["lido_terra_token_statom"].contractAddress,
-                rewardsDispatcher: this.lasset.contractInfo["lido_terra_rewards_dispatcher"].contractAddress,
-                validatorsRegistry: this.lasset.contractInfo["lido_terra_validators_registry"].contractAddress
+                lidoHub: this.lasset.contractInfo["lido_cosmos_hub"].contractAddress,
+                stAtomToken: this.lasset.contractInfo["lido_cosmos_token_statom"].contractAddress,
+                rewardsDispatcher: this.lasset.contractInfo["lido_cosmos_rewards_dispatcher"].contractAddress,
+                validatorsRegistry: this.lasset.contractInfo["lido_cosmos_validators_registry"].contractAddress
             },
             [this.keys.aKey.accAddress, this.keys.bKey.accAddress, this.keys.cKey.accAddress],
             response.validators.map((val) => val.validator_address),

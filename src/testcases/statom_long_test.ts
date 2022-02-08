@@ -16,7 +16,7 @@ async function main() {
         testState.lcdClient,
         testState.lasset,
     )
-    const statomContractAddress = testState.lasset.contractInfo.lido_terra_token_statom.contractAddress
+    const statomContractAddress = testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress
     await mustPass(testState.lasset.add_validator(testState.wallets.ownerWallet, vals[1].address))
 
     const initial_uatom_balance_a = Number((await testState.wallets.a.lcd.bank.balance(testState.wallets.a.key.accAddress))[0].get(atomDenom).amount)
@@ -112,7 +112,7 @@ async function main() {
                 testState.wallets.a,
                 1_000_000,
                 {unbond: {}},
-                testState.lasset.contractInfo["lido_terra_hub"].contractAddress
+                testState.lasset.contractInfo["lido_cosmos_hub"].contractAddress
             )
         }
     }
@@ -121,7 +121,7 @@ async function main() {
         testState.wallets.a,
         await querier.balance_statom(testState.wallets.a.key.accAddress),
         {unbond: {}},
-        testState.lasset.contractInfo["lido_terra_hub"].contractAddress
+        testState.lasset.contractInfo["lido_cosmos_hub"].contractAddress
     )
 
 
@@ -132,7 +132,7 @@ async function main() {
                 testState.wallets.b,
                 1_000_000,
                 {unbond: {}},
-                testState.lasset.contractInfo["lido_terra_hub"].contractAddress
+                testState.lasset.contractInfo["lido_cosmos_hub"].contractAddress
             )
         }
     }
@@ -141,7 +141,7 @@ async function main() {
         testState.wallets.b,
         await querier.balance_statom(testState.wallets.b.key.accAddress),
         {unbond: {}},
-        testState.lasset.contractInfo["lido_terra_hub"].contractAddress
+        testState.lasset.contractInfo["lido_cosmos_hub"].contractAddress
     )
 
 
@@ -152,7 +152,7 @@ async function main() {
                 testState.wallets.c,
                 1_000_000,
                 {unbond: {}},
-                testState.lasset.contractInfo["lido_terra_hub"].contractAddress
+                testState.lasset.contractInfo["lido_cosmos_hub"].contractAddress
             )
         }
     }
@@ -162,7 +162,7 @@ async function main() {
         testState.wallets.c,
         await querier.balance_statom(testState.wallets.c.key.accAddress),
         {unbond: {}},
-        testState.lasset.contractInfo["lido_terra_hub"].contractAddress
+        testState.lasset.contractInfo["lido_cosmos_hub"].contractAddress
     )
     await mustPass(testState.lasset.dispatch_rewards(testState.wallets.c))
 

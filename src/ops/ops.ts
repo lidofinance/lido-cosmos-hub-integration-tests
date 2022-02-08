@@ -37,9 +37,9 @@ export async function lido(owner: Wallet): Promise<Contracts> {
     }), Promise.resolve())
 
     return {
-        "lidoHub": basset.contractInfo["lido_terra_hub"].contractAddress,
-        "stAtomToken": basset.contractInfo["lido_terra_token_statom"].contractAddress,
-        "rewardsDispatcher": basset.contractInfo["lido_terra_rewards_dispatcher"].contractAddress,
-        "validatorsRegistry": basset.contractInfo["lido_terra_validators_registry"].contractAddress,
+        "lidoHub": basset.contractInfo["lido_cosmos_hub"].contractAddress,
+        "stAtomToken": basset.contractInfo["lido_cosmos_token_statom"].contractAddress,
+        "rewardsDispatcher": basset.contractInfo["lido_cosmos_rewards_dispatcher"].contractAddress,
+        "validatorsRegistry": basset.contractInfo["lido_cosmos_validators_registry"].contractAddress,
     }
 }

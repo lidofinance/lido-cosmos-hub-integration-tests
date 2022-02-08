@@ -48,13 +48,13 @@ export default class Lido {
     ): Promise<void> {
         await this.lAsset.instantiate_hub(this.owner, params?.lasset, fee);
         await this.lAsset.instantiate_validators_registry(this.owner, {
-            hub_contract: this.lAsset.contractInfo.lido_terra_hub.contractAddress,
+            hub_contract: this.lAsset.contractInfo.lido_cosmos_hub.contractAddress,
             registry: validators_addresses.map((val) => {
                 return {active: true, total_delegated: "100", address: val}
             })
         }, fee);
         await this.lAsset.instantiate_st_atom(this.owner, {}, fee);
-        await this.lAsset.instantiate_lido_terra_rewards_dispatcher(this.owner, {
+        await this.lAsset.instantiate_lido_cosmos_rewards_dispatcher(this.owner, {
             lido_fee_address: params.lasset.lido_fee_address,
         }, fee)
 
@@ -69,13 +69,13 @@ export default class Lido {
 
         await this.lAsset.instantiate_hub(this.owner, params?.lasset, fee);
         await this.lAsset.instantiate_validators_registry(this.owner, {
-            hub_contract: this.lAsset.contractInfo.lido_terra_hub.contractAddress,
+            hub_contract: this.lAsset.contractInfo.lido_cosmos_hub.contractAddress,
             registry: validators.map((val) => {
                 return {active: true, total_delegated: "100", address: val.validator_address}
             })
         }, fee);
         await this.lAsset.instantiate_st_atom(this.owner, {}, fee);
-        await this.lAsset.instantiate_lido_terra_rewards_dispatcher(this.owner, {
+        await this.lAsset.instantiate_lido_cosmos_rewards_dispatcher(this.owner, {
             lido_fee_address: params.lasset.lido_fee_address,
         }, fee)
 

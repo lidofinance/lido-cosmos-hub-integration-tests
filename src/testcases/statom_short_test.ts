@@ -15,7 +15,7 @@ async function main() {
         testState.lcdClient,
         testState.lasset,
     )
-    const statomContractAddress = testState.lasset.contractInfo.lido_terra_token_statom.contractAddress
+    const statomContractAddress = testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress
 
 
     await mustPass(testState.lasset.bond_for_statom(testState.wallets.a, 10_000_000_000))
@@ -49,7 +49,7 @@ async function main() {
         testState.wallets.a,
         1_000_000_000,
         { unbond: {} },
-        testState.lasset.contractInfo["lido_terra_hub"].contractAddress
+        testState.lasset.contractInfo["lido_cosmos_hub"].contractAddress
     ))
     await mustPass(emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 50))
     await mustPass(testState.lasset.finish(testState.wallets.a))
@@ -66,7 +66,7 @@ async function main() {
     await mustFail(testState.lasset.mint_cw20_token(
         statomContractAddress,
         testState.wallets.a,
-        testState.lasset.contractInfo["lido_terra_hub"].contractAddress,
+        testState.lasset.contractInfo["lido_cosmos_hub"].contractAddress,
         100000))
 
     // TransferFrom
@@ -101,7 +101,7 @@ async function main() {
     await mustPass(testState.lasset.send_from_cw20_token(statomContractAddress, testState.wallets.b, testState.wallets.a,
         1_000_000_000,
         { unbond: {} },
-        testState.lasset.contractInfo["lido_terra_hub"].contractAddress))
+        testState.lasset.contractInfo["lido_cosmos_hub"].contractAddress))
     await mustPass(emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 50))
     await mustPass(testState.lasset.finish(testState.wallets.b))
     const uatom_balance_b = Number((await testState.wallets.a.lcd.bank.balance(testState.wallets.b.key.accAddress))[0].get(atomDenom).amount)
@@ -115,7 +115,7 @@ async function main() {
     await mustFail(testState.lasset.send_from_cw20_token(statomContractAddress, testState.wallets.b, testState.wallets.a,
         1_000_000_000,
         { unbond: {} },
-        testState.lasset.contractInfo["lido_terra_hub"].contractAddress)
+        testState.lasset.contractInfo["lido_cosmos_hub"].contractAddress)
     )
     assert.equal(total_withdrawals, (await querier.all_history()).history.length)
     assert.equal(uatom_balance_b, Number((await testState.wallets.a.lcd.bank.balance(testState.wallets.b.key.accAddress))[0].get(atomDenom).amount))

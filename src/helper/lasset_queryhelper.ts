@@ -105,18 +105,18 @@ export default class LidoAssetQueryHelper {
     constructor(lcd: LCDClient, lasset: LidoAsset) {
         this.lcd = lcd;
         this.lasset = lasset;
-        this.statom_token_querier = new TokenQuerier(this.lasset.contractInfo.lido_terra_token_statom.contractAddress, this.lcd)
+        this.statom_token_querier = new TokenQuerier(this.lasset.contractInfo.lido_cosmos_token_statom.contractAddress, this.lcd)
     }
 
     async lassethubquery(msg: LidoHubQueryMsg): Promise<any> {
         return makeRestStoreQuery(
-            this.lasset.contractInfo.lido_terra_hub.contractAddress,
+            this.lasset.contractInfo.lido_cosmos_hub.contractAddress,
             msg,
             this.lcd.config.URL
         )
     }
 
-    async get_lido_terra_hub_state(): Promise<State> {
+    async get_lido_cosmos_hub_state(): Promise<State> {
         return this.lassethubquery({
             state: {}
         }).then(r => r as State)
@@ -124,7 +124,7 @@ export default class LidoAssetQueryHelper {
 
     async validatorsquery(msg: ValidatorsQueryMsg): Promise<any> {
         return makeRestStoreQuery(
-            this.lasset.contractInfo.lido_terra_validators_registry.contractAddress,
+            this.lasset.contractInfo.lido_cosmos_validators_registry.contractAddress,
             msg,
             this.lcd.config.URL
         )
@@ -176,12 +176,12 @@ export default class LidoAssetQueryHelper {
 
 
     public async statom_exchange_rate(): Promise<number> {
-        return this.get_lido_terra_hub_state()
+        return this.get_lido_cosmos_hub_state()
             .then(r => Number(r.statom_exchange_rate))
     }
 
     public async total_bond_statom_amount(): Promise<number> {
-        return this.get_lido_terra_hub_state()
+        return this.get_lido_cosmos_hub_state()
             .then(r => Number(r.total_bond_statom_amount))
     }
 
