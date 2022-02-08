@@ -1,7 +1,8 @@
-import { StdFee, Wallet } from "@terra-money/terra.js";
+import { Fee, Wallet } from "@terra-money/terra.js";
 import * as path from 'path'
 import Lido from "../helper/spawn";
 import { Contracts } from "../mantle-querier/types"
+import { atomDenom } from "./../helper/types/coin"
 
 const locationBase = path.resolve(__dirname, "../../")
 
@@ -10,7 +11,7 @@ export async function lido(owner: Wallet): Promise<Contracts> {
     const validators = await owner.lcd.staking.validators()
 
     const lido = new Lido(owner)
-    const fixedFeeForInit = new StdFee(6000000, "2000000uusd")
+    const fixedFeeForInit = new Fee(6000000, "2000000uusd")
     await lido.store_contracts(
         path.resolve(locationBase, './lido-cosmos-contracts/artifacts'),
     )
@@ -18,11 +19,11 @@ export async function lido(owner: Wallet): Promise<Contracts> {
     await lido.instantiate(fixedFeeForInit, {
         lasset: {
             epoch_period: 12345,
-            underlying_coin_denom: "uluna",
+            underlying_coin_denom: atomDenom,
             unbonding_period: 86415,
             peg_recovery_fee: "0.001",
             er_threshold: "1.0",
-            reward_denom: "uusd",
+            reward_denom: atomDenom,
         },
         testAccount: owner.key.accAddress
     })
@@ -36,9 +37,9 @@ export async function lido(owner: Wallet): Promise<Contracts> {
     }), Promise.resolve())
 
     return {
-        "lidoHub": basset.contractInfo["lido_terra_hub"].contractAddress,
-        "stLunaToken": basset.contractInfo["lido_terra_token_stluna"].contractAddress,
-        "rewardsDispatcher": basset.contractInfo["lido_terra_rewards_dispatcher"].contractAddress,
-        "validatorsRegistry": basset.contractInfo["lido_terra_validators_registry"].contractAddress,
+        "lidoHub": basset.contractInfo["lido_cosmos_hub"].contractAddress,
+        "stAtomToken": basset.contractInfo["lido_cosmos_token_statom"].contractAddress,
+        "rewardsDispatcher": basset.contractInfo["lido_cosmos_rewards_dispatcher"].contractAddress,
+        "validatorsRegistry": basset.contractInfo["lido_cosmos_validators_registry"].contractAddress,
     }
 }

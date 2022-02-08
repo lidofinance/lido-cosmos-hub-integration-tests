@@ -9,7 +9,6 @@ export type Uint128 = string;
 
 export interface CurrentBatchResponse {
   id: number;
-  requested_bluna_with_fee: Uint128;
-  requested_stluna: Uint128;
+  requested_statom: Uint128;
   [k: string]: unknown;
 }

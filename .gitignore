@@ -2,6 +2,7 @@ node_modules/
 yarn-error.log
 keystore.db
 yarn.lock
+lido-cosmos-contracts/artifacts/*
 
 # IDEs
 *.iml

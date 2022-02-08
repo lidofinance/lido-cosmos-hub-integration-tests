@@ -2,20 +2,20 @@ import { GraphQLClient } from "graphql-request";
 import { makeBalanceQuery, makeContractStoreQuery, makeQuery } from "./common";
 import { Addresses, Contracts, Validators } from "./types";
 
-export const getStlunaState = async (
+export const getStAtomState = async (
     client: GraphQLClient,
     addresses: Addresses,
     validators: Validators,
     contracts: Contracts
 ) => {
-    const total_stluna_issued = await makeContractStoreQuery(
-        contracts.stLunaToken,
+    const total_statom_issued = await makeContractStoreQuery(
+        contracts.stAtomToken,
         { token_info: {} },
         client
     );
 
 
-    const stLuna_holders: {
+    const statom_holders: {
         [address: string]: {
             balance: string;
         };
@@ -23,18 +23,18 @@ export const getStlunaState = async (
 
     for (const address of addresses) {
         const balance = await makeContractStoreQuery(
-            contracts.stLunaToken,
+            contracts.stAtomToken,
             { balance: { address: address } },
             client
         ).then((r) => r.balance);
 
-        stLuna_holders[address] = {
+        statom_holders[address] = {
             balance,
         };
     }
 
     return {
-        total_stluna_issued,
-        stLuna_holders,
+        total_statom_issued,
+        statom_holders,
     };
 };

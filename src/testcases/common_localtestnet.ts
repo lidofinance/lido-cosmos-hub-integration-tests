@@ -192,8 +192,8 @@ export class TestStateLocalTestNet {
 
 }
 
-export const get_expected_sum_from_requests = async (querier: LidoAssetQueryHelper, reqs: UnbondRequestsResponse, token: "stluna"): Promise<number> => {
-    return reqs.requests.reduce(async (acc, [batchid, amount_stluna_tokens]) => {
+export const get_expected_sum_from_requests = async (querier: LidoAssetQueryHelper, reqs: UnbondRequestsResponse): Promise<number> => {
+    return reqs.requests.reduce(async (acc, [batchid, amount_statom_tokens]) => {
         const acc_sum = await acc;
         const h = await querier.all_history(1, batchid - 1);
         if (h.history.length == 0) {
@@ -204,7 +204,7 @@ export const get_expected_sum_from_requests = async (querier: LidoAssetQueryHelp
             return acc_sum
         }
         else {
-            return Number(h.history[0].stluna_withdraw_rate) * Number(amount_stluna_tokens) + acc_sum;
+            return Number(h.history[0].statom_withdraw_rate) * Number(amount_statom_tokens) + acc_sum;
         }
     }, Promise.resolve(0))
 }

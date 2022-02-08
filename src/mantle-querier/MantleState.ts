@@ -1,11 +1,11 @@
 import { gql, GraphQLClient } from "graphql-request";
 import { getCoreState } from "./core";
 import { Addresses, Contracts, Validators } from "./types";
-import {getStlunaState} from "./stLuna";
+import {getStAtomState} from "./stAtom";
 
 interface ContractAddresses {
     "lidoHub": string,
-    "stLunaToken": string,
+    "stAtomToken": string,
     "rewardsDispatcher": string,
     "validatorsRegistry": string,
 }
@@ -31,7 +31,7 @@ export class MantleState {
     async getState() {
         return Promise.all([
             getCoreState(this.client, this.addresses, this.validators, this.contracts),
-            getStlunaState(this.client, this.addresses, this.validators, this.contracts),
+            getStAtomState(this.client, this.addresses, this.validators, this.contracts),
         ]).then(([core]) => ({
             ...core,
         }))

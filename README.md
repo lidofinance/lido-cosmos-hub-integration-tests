@@ -22,10 +22,10 @@ yarn install
 5) run `docker-compose up`
 
 you are ready to run tests
-the only one is workong right now is `./src/testcases/stluna_short_test.ts`
 
 ```
-npx ts-node ./src/testcases/stluna_short_test.ts
+npx ts-node ./src/testcases/statom_short_test.ts
+npx ts-node ./src/testcases/statom_long_test.ts
 ```
 
 The main difference between mantle sdk testkit and localterra testkit is in mantle sdk we are injecting accounts and validators and their behavior in network, while in localterra we are using predefined accounts
@@ -65,6 +65,6 @@ curl http://192.168.10.2:1317/oracle/denoms/exchange_rates
 ```
 4) run the tests
     working now
-    `./src/testcases/stluna_longrun_test.ts`
-    `./src/testcases/stluna_short_test.ts`
+    `./src/testcases/statom_long_test.ts`
+    `./src/testcases/statom_short_test.ts`
 5) recommended to clear env with `make stop && make start` before each testrun

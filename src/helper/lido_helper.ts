@@ -9,12 +9,13 @@ import {
 } from "@terra-money/terra.js";
 import * as fs from "fs";
 import {execute, instantiate, send_transaction} from "./flow/execution";
+import { atomDenom } from "./types/coin";
 
 const contracts = [
-    "lido_terra_hub",
-    "lido_terra_token_stluna",
-    "lido_terra_rewards_dispatcher",
-    "lido_terra_validators_registry",
+    "lido_cosmos_hub",
+    "lido_cosmos_token_statom",
+    "lido_cosmos_rewards_dispatcher",
+    "lido_cosmos_validators_registry",
 ];
 
 type Expire = {at_height: number} | {at_time: number} | {never: {}};
@@ -67,10 +68,10 @@ export default class LidoAsset {
     ): Promise<void> {
         const init = await instantiate(
             sender,
-            this.contractInfo.lido_terra_validators_registry.codeId,
+            this.contractInfo.lido_cosmos_validators_registry.codeId,
             {
                 registry: params.registry || [],
-                hub_contract: params.hub_contract || this.contractInfo.lido_terra_hub.contractAddress
+                hub_contract: params.hub_contract || this.contractInfo.lido_cosmos_hub.contractAddress
             },
             undefined
         )
@@ -79,14 +80,14 @@ export default class LidoAsset {
         }
         const contractAddress =
             init.logs[0].eventsByType.instantiate_contract.contract_address[0];
-        this.contractInfo.lido_terra_validators_registry.contractAddress = contractAddress;
+        this.contractInfo.lido_cosmos_validators_registry.contractAddress = contractAddress;
 
         console.log(
-            `lido_terra_validators_registry: { codeId: ${this.contractInfo.lido_terra_validators_registry.codeId}, contractAddress: "${this.contractInfo.lido_terra_validators_registry.contractAddress}"},`
+            `lido_cosmos_validators_registry: { codeId: ${this.contractInfo.lido_cosmos_validators_registry.codeId}, contractAddress: "${this.contractInfo.lido_cosmos_validators_registry.contractAddress}"},`
         );
     }
 
-    public async instantiate_st_luna(
+    public async instantiate_st_atom(
         sender: Wallet,
         params: {
             name?: string,
@@ -100,13 +101,13 @@ export default class LidoAsset {
     ): Promise<void> {
         const init = await instantiate(
             sender,
-            this.contractInfo.lido_terra_token_stluna.codeId,
+            this.contractInfo.lido_cosmos_token_statom.codeId,
             {
                 name: params.name || "test_name",
                 symbol: params.symbol || "AAA",
                 decimals: params.decimals || 6,
                 initial_balances: params.initial_balances || [],
-                hub_contract: params.hub_contract || this.contractInfo.lido_terra_hub.contractAddress,
+                hub_contract: params.hub_contract || this.contractInfo.lido_cosmos_hub.contractAddress,
                 mint: params.mint
             },
             undefined
@@ -116,14 +117,14 @@ export default class LidoAsset {
         }
         const contractAddress =
             init.logs[0].eventsByType.instantiate_contract.contract_address[0];
-        this.contractInfo.lido_terra_token_stluna.contractAddress = contractAddress;
+        this.contractInfo.lido_cosmos_token_statom.contractAddress = contractAddress;
 
         console.log(
-            `lido_terra_token_stluna: { codeId: ${this.contractInfo.lido_terra_token_stluna.codeId}, contractAddress: "${this.contractInfo.lido_terra_token_stluna.contractAddress}"},`
+            `lido_cosmos_token_statom: { codeId: ${this.contractInfo.lido_cosmos_token_statom.codeId}, contractAddress: "${this.contractInfo.lido_cosmos_token_statom.contractAddress}"},`
         );
     }
 
-    public async instantiate_lido_terra_rewards_dispatcher(
+    public async instantiate_lido_cosmos_rewards_dispatcher(
         sender: Wallet,
         params: {
             hub_contract?: string,
@@ -133,12 +134,12 @@ export default class LidoAsset {
     ): Promise<void> {
         const init = await instantiate(
             sender,
-            this.contractInfo.lido_terra_rewards_dispatcher.codeId,
+            this.contractInfo.lido_cosmos_rewards_dispatcher.codeId,
             {
-                hub_contract: params.hub_contract || this.contractInfo.lido_terra_hub.contractAddress,
-                stluna_reward_denom: "uluna",
+                hub_contract: params.hub_contract || this.contractInfo.lido_cosmos_hub.contractAddress,
+                statom_reward_denom: atomDenom,
                 //FIX: change to real fee address?
-                lido_fee_address: params.lido_fee_address || this.contractInfo["lido_terra_token"].contractAddress,
+                lido_fee_address: params.lido_fee_address || this.contractInfo["lido_cosmos_token"].contractAddress,
                 lido_fee_rate: "0.005",
             },
             undefined
@@ -148,10 +149,10 @@ export default class LidoAsset {
         }
         const contractAddress =
             init.logs[0].eventsByType.instantiate_contract.contract_address[0];
-        this.contractInfo.lido_terra_rewards_dispatcher.contractAddress = contractAddress;
+        this.contractInfo.lido_cosmos_rewards_dispatcher.contractAddress = contractAddress;
 
         console.log(
-            `lido_terra_rewards_dispatcher: { codeId: ${this.contractInfo.lido_terra_rewards_dispatcher.codeId}, contractAddress: "${this.contractInfo.lido_terra_rewards_dispatcher.contractAddress}"},`
+            `lido_cosmos_rewards_dispatcher: { codeId: ${this.contractInfo.lido_cosmos_rewards_dispatcher.codeId}, contractAddress: "${this.contractInfo.lido_cosmos_rewards_dispatcher.contractAddress}"},`
         );
 
     }
@@ -172,7 +173,7 @@ export default class LidoAsset {
         const coins = new Coins([]);
         const init = await instantiate(
             sender,
-            this.contractInfo.lido_terra_hub.codeId,
+            this.contractInfo.lido_cosmos_hub.codeId,
             {
                 //FIXME: The epoch period and unbonding period must be changed
                 epoch_period: params?.epoch_period,
@@ -192,10 +193,10 @@ export default class LidoAsset {
 
         const contractAddress =
             init.logs[0].eventsByType.instantiate_contract.contract_address[0];
-        this.contractInfo.lido_terra_hub.contractAddress = contractAddress;
+        this.contractInfo.lido_cosmos_hub.contractAddress = contractAddress;
 
         console.log(
-            `lido_terra_hub: { codeId: ${this.contractInfo.lido_terra_hub.codeId}, contractAddress: "${this.contractInfo.lido_terra_hub.contractAddress}"},`
+            `lido_cosmos_hub: { codeId: ${this.contractInfo.lido_cosmos_hub.codeId}, contractAddress: "${this.contractInfo.lido_cosmos_hub.contractAddress}"},`
         );
     }
 
@@ -205,19 +206,19 @@ export default class LidoAsset {
             reward_address?: string;
             validators_registry?: string;
             rewards_dispatcher_contract?: string;
-            stluna_token_contract?: string,
+            statom_token_contract?: string,
         },
         fee?: Fee
     ) {
         const msg = await execute(
             sender,
-            this.contractInfo["lido_terra_hub"].contractAddress,
+            this.contractInfo["lido_cosmos_hub"].contractAddress,
             {
                 update_config: {
                     owner: undefined,
-                    rewards_dispatcher_contract: params.rewards_dispatcher_contract || `${this.contractInfo["lido_terra_rewards_dispatcher"].contractAddress}`,
-                    stluna_token_contract: params.stluna_token_contract || `${this.contractInfo["lido_terra_token_stluna"].contractAddress}`,
-                    validators_registry_contract: params.validators_registry || `${this.contractInfo.lido_terra_validators_registry.contractAddress}`,
+                    rewards_dispatcher_contract: params.rewards_dispatcher_contract || `${this.contractInfo["lido_cosmos_rewards_dispatcher"].contractAddress}`,
+                    statom_token_contract: params.statom_token_contract || `${this.contractInfo["lido_cosmos_token_statom"].contractAddress}`,
+                    validators_registry_contract: params.validators_registry || `${this.contractInfo.lido_cosmos_validators_registry.contractAddress}`,
                 },
             },
             undefined,
@@ -233,7 +234,7 @@ export default class LidoAsset {
         validator: string,
         fee?: Fee
     ): Promise<void> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
         const registerValidatorExecution = await execute(
             sender,
             contract,
@@ -254,7 +255,7 @@ export default class LidoAsset {
         sender: Wallet,
         validatorAddress: string
     ): Promise<void> {
-        const contract = this.contractInfo.lido_terra_validators_registry.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_validators_registry.contractAddress;
         const addValidatorExecution = await execute(sender, contract, {
             add_validator: {
                 validator: {
@@ -272,7 +273,7 @@ export default class LidoAsset {
         sender: Wallet,
         validatorAddress: string
     ): Promise<void> {
-        const contract = this.contractInfo.lido_terra_validators_registry.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_validators_registry.contractAddress;
         const removeValidatorExecution = await execute(sender, contract, {
             remove_validator: {
                 address: `${validatorAddress}`,
@@ -283,86 +284,23 @@ export default class LidoAsset {
         }
     }
 
-    public async bond(
+    public async bond_for_statom(
         sender: Wallet,
         amount: number,
     ): Promise<void> {
-        const coin = new Coin("uluna", amount);
+        const coin = new Coin(atomDenom, amount);
         const coins = new Coins([coin]);
-        const contract = this.contractInfo["lido_terra_hub"].contractAddress;
+        const contract = this.contractInfo["lido_cosmos_hub"].contractAddress;
         const bondExecution = await execute(
             sender,
             contract,
             {
-                bond: {},
+                bond_for_st_atom: {},
             },
             coins
         );
         if (isTxError(bondExecution)) {
             throw new Error(`Couldn't run: ${bondExecution.raw_log}`);
-        }
-    }
-
-    public async bond_for_stluna(
-        sender: Wallet,
-        amount: number,
-    ): Promise<void> {
-        const coin = new Coin("uluna", amount);
-        const coins = new Coins([coin]);
-        const contract = this.contractInfo["lido_terra_hub"].contractAddress;
-        const bondExecution = await execute(
-            sender,
-            contract,
-            {
-                bond_for_st_luna: {},
-            },
-            coins
-        );
-        if (isTxError(bondExecution)) {
-            throw new Error(`Couldn't run: ${bondExecution.raw_log}`);
-        }
-    }
-    public async convert_stluna_to_bluna(
-        sender: Wallet,
-        amount: number,
-    ): Promise<void> {
-        const coin = new Coin("uluna", amount);
-        const coins = new Coins([coin]);
-        const contract = this.contractInfo["lido_terra_token_stluna"].contractAddress;
-        const sendExecuttion = await execute(
-            sender,
-            contract,
-            {
-                send: {
-                    contract: this.contractInfo["lido_terra_hub"].contractAddress,
-                    amount: `${amount}`,
-                    msg: Buffer.from(JSON.stringify({convert: {}})).toString("base64"),
-                },
-            });
-        if (isTxError(sendExecuttion)) {
-            throw new Error(`Couldn't run: ${sendExecuttion.raw_log}`);
-        }
-    }
-
-    public async convert_bluna_to_stluna(
-        sender: Wallet,
-        amount: number,
-    ): Promise<void> {
-        const coin = new Coin("uluna", amount);
-        const coins = new Coins([coin]);
-        const contract = this.contractInfo["lido_terra_token"].contractAddress;
-        const sendExecuttion = await execute(
-            sender,
-            contract,
-            {
-                send: {
-                    contract: this.contractInfo["lido_terra_hub"].contractAddress,
-                    amount: `${amount}`,
-                    msg: Buffer.from(JSON.stringify({convert: {}})).toString("base64"),
-                },
-            });
-        if (isTxError(sendExecuttion)) {
-            throw new Error(`Couldn't run: ${sendExecuttion.raw_log}`);
         }
     }
 
@@ -371,7 +309,7 @@ export default class LidoAsset {
         src_validator_address: string,
         redelegations: Array<[string, Coin]>,
     ): Promise<void> {
-        const contract = this.contractInfo["lido_terra_hub"].contractAddress;
+        const contract = this.contractInfo["lido_cosmos_hub"].contractAddress;
         const bondExecution = await execute(
             sender,
             contract,
@@ -400,14 +338,14 @@ export default class LidoAsset {
         },
         fee?: Fee
     ): Promise<void> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
         const paramsExecution = await execute(
             sender,
             contract,
             {
                 update_params: {
                     epoch_period: params?.epoch_period || 30,
-                    underlying_coin_denom: params?.underlying_coin_denom || "uluna",
+                    underlying_coin_denom: params?.underlying_coin_denom || atomDenom,
                     unbonding_period: params?.unbonding_period || 211,
                     peg_recovery_fee: params?.peg_recovery_fee || "0.001",
                     er_threshold: params?.er_threshold || "1",
@@ -427,7 +365,7 @@ export default class LidoAsset {
         owner?: string,
         token_contract?: string
     ): Promise<void> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
         const paramsExecution = await execute(sender, contract, {
             update_config: {
                 owner: owner,
@@ -440,7 +378,7 @@ export default class LidoAsset {
     }
 
     public async finish(sender: Wallet): Promise<void> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
         const finishExecution = await execute(sender, contract, {
             withdraw_unbonded: {},
         });
@@ -450,7 +388,7 @@ export default class LidoAsset {
     }
 
     public async dispatch_rewards(sender: Wallet): Promise<void> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
         const finishExe = await execute(sender, contract, {
             dispatch_rewards: {
                 // airdrop_hooks: null,
@@ -461,21 +399,8 @@ export default class LidoAsset {
         }
     }
 
-    public async update_global_index_with_result(sender: Wallet): Promise<ReturnType<typeof send_transaction>> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
-        const finishExe = await execute(sender, contract, {
-            update_global_index: {
-                // airdrop_hooks: null,
-            },
-        });
-        if (isTxError(finishExe)) {
-            throw new Error(`Couldn't run: ${finishExe.raw_log}`);
-        }
-        return finishExe
-    }
-
     public async slashing(sender: Wallet): Promise<void> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
         const slashingExe = await execute(sender, contract, {
             check_slashing: {},
         });
@@ -663,7 +588,7 @@ export default class LidoAsset {
     ): Promise<void> {
         const execution = await execute(
             sender,
-            this.contractInfo.lido_terra_airdrop_registry.contractAddress,
+            this.contractInfo.lido_cosmos_airdrop_registry.contractAddress,
             {
                 add_airdrop_info: {
                     airdrop_token: "ANC",
@@ -694,7 +619,7 @@ export default class LidoAsset {
     }
 
     public async add_guardians(sender: Wallet, guardians: Array<string>): Promise<void> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
         const addGuardians = await execute(sender, contract, {
             add_guardians: {addresses: guardians},
         });
@@ -704,7 +629,7 @@ export default class LidoAsset {
     }
 
     public async remove_guardians(sender: Wallet, guardians: Array<string>): Promise<void> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
         const removeGuardians = await execute(sender, contract, {
             remove_guardians: {addresses: guardians},
         });
@@ -714,7 +639,7 @@ export default class LidoAsset {
     }
 
     public async pauseContracts(sender: Wallet): Promise<void> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
         const pauseContracts = await execute(sender, contract, {
             pause_contracts: {},
         });
@@ -724,7 +649,7 @@ export default class LidoAsset {
     }
 
     public async unpauseContracts(sender: Wallet): Promise<void> {
-        const contract = this.contractInfo.lido_terra_hub.contractAddress;
+        const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
         const unpauseContracts = await execute(sender, contract, {
             unpause_contracts: {},
         });
@@ -741,7 +666,7 @@ export default class LidoAsset {
     ): Promise<void> {
         const execution = await execute(
             sender,
-            this.contractInfo.lido_terra_airdrop_registry.contractAddress,
+            this.contractInfo.lido_cosmos_airdrop_registry.contractAddress,
             {
                 fabricate_mir_claim: {
                     stage: stage,

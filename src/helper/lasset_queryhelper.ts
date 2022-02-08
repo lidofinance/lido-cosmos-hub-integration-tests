@@ -16,8 +16,6 @@ import {WithdrawableUnbondedResponse} from "./types/hub/withdrawable_unbonded_re
 import {LCDClient} from "@terra-money/terra.js";
 import axios from "axios";
 
-//npx json2ts -i anchor-bAsset-contracts/contracts/lido_terra_token/schema/ -o src/helper/types/bluna_token/
-
 
 export const makeRestStoreQuery = async (contract_address: string,msg:any,endpoint:string): Promise<any> => {
     const r = await axios.get(`${endpoint}/wasm/contracts/${contract_address}/store`,{ params: { query_msg: msg } })
@@ -101,24 +99,24 @@ export default class LidoAssetQueryHelper {
     testkit: Testkit
     mantleClient: GraphQLClient
     lasset: LidoAsset
-    stluna_token_querier: TokenQuerier
+    statom_token_querier: TokenQuerier
     lcd: LCDClient
 
     constructor(lcd: LCDClient, lasset: LidoAsset) {
         this.lcd = lcd;
         this.lasset = lasset;
-        this.stluna_token_querier = new TokenQuerier(this.lasset.contractInfo.lido_terra_token_stluna.contractAddress, this.lcd)
+        this.statom_token_querier = new TokenQuerier(this.lasset.contractInfo.lido_cosmos_token_statom.contractAddress, this.lcd)
     }
 
     async lassethubquery(msg: LidoHubQueryMsg): Promise<any> {
         return makeRestStoreQuery(
-            this.lasset.contractInfo.lido_terra_hub.contractAddress,
+            this.lasset.contractInfo.lido_cosmos_hub.contractAddress,
             msg,
             this.lcd.config.URL
         )
     }
 
-    async get_lido_terra_hub_state(): Promise<State> {
+    async get_lido_cosmos_hub_state(): Promise<State> {
         return this.lassethubquery({
             state: {}
         }).then(r => r as State)
@@ -126,45 +124,45 @@ export default class LidoAssetQueryHelper {
 
     async validatorsquery(msg: ValidatorsQueryMsg): Promise<any> {
         return makeRestStoreQuery(
-            this.lasset.contractInfo.lido_terra_validators_registry.contractAddress,
+            this.lasset.contractInfo.lido_cosmos_validators_registry.contractAddress,
             msg,
             this.lcd.config.URL
         )
     }
 
-    /* BEGIN. CW20 compatible tokens(bluna and stluna) helpers */
+    /* BEGIN. statom helpers */
 
-    // Returns the current stluna balance of the given address, 0 if unset.
-    public async balance_stluna(address: string): Promise<number> {
-        return this.stluna_token_querier.balance(address)
+    // Returns the current statom balance of the given address, 0 if unset.
+    public async balance_statom(address: string): Promise<number> {
+        return this.statom_token_querier.balance(address)
     }
 
-    // Returns metadata on the stluna contract - name, decimals, supply, etc. Return type: TokenInfoResponse.
-    public async token_info_stluna(): Promise<TokenInfoResponse> {
-        return this.stluna_token_querier.token_info()
+    // Returns metadata on the statom contract - name, decimals, supply, etc. Return type: TokenInfoResponse.
+    public async token_info_statom(): Promise<TokenInfoResponse> {
+        return this.statom_token_querier.token_info()
     }
 
-    // Only with "mintable" extension. Returns who can mint stluna and how much. Return type: MinterResponse.
-    public async minter_stluna(): Promise<MinterResponse> {
-        return this.stluna_token_querier.minter()
+    // Only with "mintable" extension. Returns who can mint statom and how much. Return type: MinterResponse.
+    public async minter_statom(): Promise<MinterResponse> {
+        return this.statom_token_querier.minter()
     }
 
-    // Only with "allowance" extension. Returns how much spender can use from owner stluna account, 0 if unset. Return type: AllowanceResponse.
-    public async allowance_stluna(owner_address: string, spender_address: string): Promise<AllowanceResponse> {
-        return this.stluna_token_querier.allowance(owner_address, spender_address)
+    // Only with "allowance" extension. Returns how much spender can use from owner statom account, 0 if unset. Return type: AllowanceResponse.
+    public async allowance_statom(owner_address: string, spender_address: string): Promise<AllowanceResponse> {
+        return this.statom_token_querier.allowance(owner_address, spender_address)
     }
 
-    // Only with "enumerable" extension (and "allowances") Returns all allowances this owner has approved on the stluna contract. Supports pagination. Return type: AllAllowancesResponse.
-    public async all_allowances_stluna(owner_address: string, limit?: number, start_after_addr?: string): Promise<AllAllowancesResponse> {
-        return this.stluna_token_querier.all_allowances(owner_address, limit, start_after_addr)
+    // Only with "enumerable" extension (and "allowances") Returns all allowances this owner has approved on the statom contract. Supports pagination. Return type: AllAllowancesResponse.
+    public async all_allowances_statom(owner_address: string, limit?: number, start_after_addr?: string): Promise<AllAllowancesResponse> {
+        return this.statom_token_querier.all_allowances(owner_address, limit, start_after_addr)
     }
 
-    // Only with "enumerable" extension Returns all accounts that have balances on the stluna contract. Supports pagination. Return type: AllAccountsResponse.
-    public async all_accounts_stluna(limit?: number, start_after_addr?: string): Promise<AllAccountsResponse> {
-        return this.stluna_token_querier.all_accounts(limit, start_after_addr)
+    // Only with "enumerable" extension Returns all accounts that have balances on the statom contract. Supports pagination. Return type: AllAccountsResponse.
+    public async all_accounts_statom(limit?: number, start_after_addr?: string): Promise<AllAccountsResponse> {
+        return this.statom_token_querier.all_accounts(limit, start_after_addr)
     }
 
-    /* END. CW20 compatible tokens(bluna and stluna) helpers */
+    /* END. statom helpers */
 
 
 
@@ -177,14 +175,14 @@ export default class LidoAssetQueryHelper {
     }
 
 
-    public async stluna_exchange_rate(): Promise<number> {
-        return this.get_lido_terra_hub_state()
-            .then(r => Number(r.stluna_exchange_rate))
+    public async statom_exchange_rate(): Promise<number> {
+        return this.get_lido_cosmos_hub_state()
+            .then(r => Number(r.statom_exchange_rate))
     }
 
-    public async total_bond_stluna_amount(): Promise<number> {
-        return this.get_lido_terra_hub_state()
-            .then(r => Number(r.total_bond_stluna_amount))
+    public async total_bond_statom_amount(): Promise<number> {
+        return this.get_lido_cosmos_hub_state()
+            .then(r => Number(r.total_bond_statom_amount))
     }
 
     public async all_history(limit?: number, start_from?: number): Promise<AllHistoryResponse> {

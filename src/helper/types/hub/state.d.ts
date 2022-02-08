@@ -14,13 +14,11 @@ export type Decimal = string;
 export type Uint128 = string;
 
 export interface State {
-  bluna_exchange_rate: Decimal;
   last_index_modification: number;
   last_processed_batch: number;
   last_unbonded_time: number;
   prev_hub_balance: Uint128;
-  stluna_exchange_rate: Decimal;
-  total_bond_bluna_amount: Uint128;
-  total_bond_stluna_amount: Uint128;
+  statom_exchange_rate: Decimal;
+  total_bond_statom_amount: Uint128;
   [k: string]: unknown;
 }
