@@ -2,17 +2,11 @@ import {
   BlockTxBroadcastResult,
   Coins,
   Fee,
-  isTxError,
   Msg,
   MsgExecuteContract,
   MsgInstantiateContract,
-  MsgMigrateContract,
-  MsgUpdateContractAdmin,
   Wallet,
 } from "@terra-money/terra.js";
-import {gql} from "graphql-request";
-import {MantleState} from "../../mantle-querier/MantleState";
-import {makeRecord} from "./record";
 
 export async function instantiate(
   sender: Wallet,
