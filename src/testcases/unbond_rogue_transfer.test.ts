@@ -1,5 +1,5 @@
 import { mustPass } from "../helper/flow/must";
-import { emptyBlockWithFixedGas } from "../helper/flow/gas-station";
+import { wait } from "../helper/flow/sleep";
 import { TestStateLocalTestNet } from "./common_localtestnet";
 import { makeRestStoreQuery } from "../helper/lasset_queryhelper";
 import { send_transaction } from "../helper/flow/execution";
@@ -10,7 +10,7 @@ async function getLunaBalance(testState: TestStateLocalTestNet, address) {
   return balance[0].get("uluna").amount;
 }
 
-function approxeq(a, b, e) {
+function approxeq(a: number, b: number, e: number) {
   return Math.abs(a - b) <= e;
 }
 
@@ -25,9 +25,7 @@ async function main() {
     testState.lasset.bond_for_statom(testState.wallets.b, bondAmount)
   );
 
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 5)
-  );
+  await wait(2500);
 
   await mustPass(
     testState.lasset.send_cw20_token(
@@ -39,9 +37,7 @@ async function main() {
     )
   );
 
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 20)
-  );
+  await wait(10000);
 
   let withdrawableUnbonded = await makeRestStoreQuery(
     testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
@@ -77,9 +73,7 @@ async function main() {
     )
   );
 
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 20)
-  );
+  await wait(5000);
 
   withdrawableUnbonded = await makeRestStoreQuery(
     testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,

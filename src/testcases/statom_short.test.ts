@@ -1,5 +1,5 @@
 import LidoAssetQueryHelper from "../helper/lasset_queryhelper";
-import { emptyBlockWithFixedGas } from "../helper/flow/gas-station";
+import { wait } from "../helper/flow/sleep";
 import { mustFail, mustPass } from "../helper/flow/must";
 import { TestStateLocalTestNet } from "./common_localtestnet";
 import { atomDenom } from "../helper/types/coin";
@@ -79,9 +79,8 @@ async function main() {
   );
   assert.equal((await querier.token_info_statom()).total_supply, 8_000_000_000);
 
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 50)
-  );
+  await wait(25000);
+
   const initial_uatom_balance = Number(
     (
       await testState.wallets.a.lcd.bank.balance(
@@ -98,9 +97,7 @@ async function main() {
       testState.lasset.contractInfo.lido_cosmos_hub.contractAddress
     )
   );
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 50)
-  );
+  await wait(25000);
   await mustPass(testState.lasset.finish(testState.wallets.a));
   assert.equal(await querier.total_bond_statom_amount(), 8_750_000_000);
   assert.equal((await querier.token_info_statom()).total_supply, 7_000_000_000);
@@ -279,9 +276,7 @@ async function main() {
       testState.lasset.contractInfo["lido_cosmos_hub"].contractAddress
     )
   );
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 50)
-  );
+  await wait(25000);
   await mustPass(testState.lasset.finish(testState.wallets.b));
   const uatom_balance_b = Number(
     (

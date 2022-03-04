@@ -1,7 +1,7 @@
 import { floateq as floateq, mustPass } from "../helper/flow/must";
-import { emptyBlockWithFixedGas } from "../helper/flow/gas-station";
 import { get_expected_sum_from_requests } from "./common_localtestnet";
 import AnchorbAssetQueryHelper from "../helper/lasset_queryhelper";
+import { wait } from "../helper/flow/sleep";
 import * as assert from "assert";
 import {
   disconnectValidator,
@@ -21,9 +21,7 @@ async function main() {
     testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress;
 
   // blocks 69 - 70
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 2)
-  );
+  await wait(1000);
 
   await mustPass(
     testState.lasset.add_validator(
@@ -50,24 +48,18 @@ async function main() {
     testState.lasset.bond_for_statom(testState.wallets.a, 1_000_000_000)
   );
 
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 9)
-  );
+  await wait(4500);
 
   let total_statom_bond_amount_before_slashing = await querier.total_bond_statom_amount();
 
   await disconnectValidator("terradnode1");
   await testState.waitForJailed("terradnode1");
 
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 20)
-  );
+  await wait(10000);
 
   await mustPass(testState.lasset.slashing(testState.wallets.a));
 
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 5)
-  );
+  await wait(2500);
 
   let total_statom_bond_amount_after_slashing = await querier.total_bond_statom_amount();
 
@@ -81,9 +73,7 @@ async function main() {
   await mustPass(testState.lasset.bond_for_statom(testState.wallets.a, 1));
   assert.ok((await querier.statom_exchange_rate()) < 1);
 
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 10)
-  );
+  await wait(5000);
 
   let statom_ex_rate_before_second_bond = await querier.statom_exchange_rate();
   assert.ok(statom_ex_rate_before_second_bond < 1);
@@ -105,9 +95,7 @@ async function main() {
   await mustPass(testState.lasset.dispatch_rewards(testState.wallets.a));
 
   // blocks 258 - 307
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 50)
-  );
+  await wait(25000);
 
   // blocks 308 - 382
   const initial_statom_balance_a = await querier.balance_statom(
@@ -140,9 +128,7 @@ async function main() {
   );
 
   // blocks 459 - 508
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 50)
-  );
+  await wait(25000);
 
   // blocks 509 - 510
   await mustPass(testState.lasset.finish(testState.wallets.a));

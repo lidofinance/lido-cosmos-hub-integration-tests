@@ -1,6 +1,6 @@
 import { mustPass, mustFail, mustFailWithErrorMsg } from "../helper/flow/must";
-import { emptyBlockWithFixedGas } from "../helper/flow/gas-station";
 import { TestStateLocalTestNet } from "./common_localtestnet";
+import { wait } from "../helper/flow/sleep";
 
 async function main() {
   const testState = new TestStateLocalTestNet();
@@ -13,9 +13,8 @@ async function main() {
     testState.lasset.bond_for_statom(testState.wallets.c, stAtomBondAmount)
   );
 
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 5)
-  );
+  await wait(2500);
+
   await mustPass(
     testState.lasset.dispatch_rewards(testState.wallets.ownerWallet)
   );

@@ -1,5 +1,5 @@
 import { floateq, mustPass } from "../helper/flow/must";
-import { emptyBlockWithFixedGas } from "../helper/flow/gas-station";
+import { wait } from "../helper/flow/sleep";
 import LidoAssetQueryHelper from "../helper/lasset_queryhelper";
 import {
   disconnectValidator,
@@ -60,14 +60,7 @@ async function main() {
   );
 
   //block 67
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation)
-  );
-
-  //block 68
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation)
-  );
+  await wait(1000);
 
   await disconnectValidator("terradnode1");
   await testState.waitForJailed("terradnode1");
@@ -81,9 +74,7 @@ async function main() {
   assert.equal(1, statom_exchange_rate);
   //block 92 - 94
   //bond
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 3)
-  );
+  await wait(1500);
   for (j = 0; j < 3; j++) {
     for (i = 0; i < 25; i++) {
       await mustPass(
@@ -149,9 +140,7 @@ async function main() {
   statom_exchange_rate = await querier.statom_exchange_rate();
 
   //block 95
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 50)
-  );
+  await wait(25000);
 
   const ubond_exch_rate = await querier.statom_exchange_rate();
   for (j = 0; j < 3; j++) {
@@ -203,9 +192,7 @@ async function main() {
       );
     }
   }
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 20)
-  );
+  await wait(10000);
   await testState.lasset.send_cw20_token(
     statomContractAddress,
     testState.wallets.c,
@@ -216,9 +203,7 @@ async function main() {
   await mustPass(testState.lasset.dispatch_rewards(testState.wallets.c));
 
   //block 99 - 159
-  await mustPass(
-    emptyBlockWithFixedGas(testState.lcdClient, testState.gasStation, 50)
-  );
+  await wait(25000);
   const unbond_requests_a = await querier.unbond_requests(
     testState.wallets.a.key.accAddress
   );
