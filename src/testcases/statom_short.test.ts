@@ -3,6 +3,7 @@ import LidoAssetQueryHelper from '../helper/lasset_queryhelper';
 import { wait } from '../helper/flow/sleep';
 import { TestStateLocalCosmosTestNet } from './common_localcosmosnet';
 import { getResponseAttributes } from '../helper/flow/response';
+import { Coin } from '@cosmjs/proto-signing';
 
 describe('StAtom / Short', () => {
   let testState: TestStateLocalCosmosTestNet;
@@ -169,6 +170,48 @@ describe('StAtom / Short', () => {
         expect(
           initialTotalSupply -
             Number((await querier.token_info_statom()).total_supply),
+        ).toEqual(1_000);
+      });
+    });
+
+    describe('receive tokenized share', () => {
+      let tokenizedShare: Coin;
+      let startingStatomBalance: number;
+      let exchangeRate: number;
+      beforeAll(async () => {
+        const balances = await testState.wrapper.queryClient.bank.allBalances(
+          (
+            await testState.wallets.a.getAccounts()
+          )[0].address,
+        );
+        tokenizedShare = balances.find((b) =>
+          b.denom.startsWith('wasmvaloper'),
+        );
+        startingStatomBalance = await querier.balance_statom(
+          testState.wallets.a,
+        );
+      });
+      test('receive tokenized share', async () => {
+        const res = await testState.lasset.receive_tokenized_share(
+          testState.wallets.a,
+          tokenizedShare,
+        );
+        expect(res.code).toEqual(0);
+      });
+      test('tokenized share must be spent', async () => {
+        const balances = await testState.wrapper.queryClient.bank.allBalances(
+          (
+            await testState.wallets.a.getAccounts()
+          )[0].address,
+        );
+        expect(
+          balances.find((b) => b.denom.startsWith('wasmvaloper')),
+        ).toBeFalsy();
+      });
+      test('statom balance must be increased', async () => {
+        expect(
+          (await querier.balance_statom(testState.wallets.a)) -
+            startingStatomBalance,
         ).toEqual(1_000);
       });
     });
