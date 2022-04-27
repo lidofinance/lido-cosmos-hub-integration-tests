@@ -1,134 +1,141 @@
-import { mustPass, mustFail, mustFailWithErrorMsg } from "../helper/flow/must";
-import { TestStateLocalTestNet } from "./common_localtestnet";
-import { wait } from "../helper/flow/sleep";
+import '../helper/cosmos.js.mocker';
+import { TestStateLocalCosmosTestNet } from './common_localcosmosnet';
+import { wait } from '../helper/flow/sleep';
 
-async function main() {
-  const testState = new TestStateLocalTestNet();
-
-  await testState.init();
-
-  let stAtomBondAmount = 20_000_000_000;
-
-  await mustPass(
-    testState.lasset.bond_for_statom(testState.wallets.c, stAtomBondAmount)
-  );
-
-  await wait(2500);
-
-  await mustPass(
-    testState.lasset.dispatch_rewards(testState.wallets.ownerWallet)
-  );
-
-  // only the owner can manage guardians
-  await mustFailWithErrorMsg(
-    testState.lasset.add_guardians(testState.wallets.d, [
-      testState.wallets.a.key.accAddress,
-      testState.wallets.b.key.accAddress,
-    ]),
-    "unauthorized"
-  );
-
-  await mustPass(
-    testState.lasset.add_guardians(testState.wallets.ownerWallet, [
-      testState.wallets.a.key.accAddress,
-      testState.wallets.b.key.accAddress,
-    ])
-  );
-
-  // guardian B pauses the contracts
-  await mustPass(testState.lasset.pauseContracts(testState.wallets.b));
-
-  await mustFailWithErrorMsg(
-    testState.lasset.dispatch_rewards(testState.wallets.ownerWallet),
-    "contract is temporarily paused"
-  ); // hub must be paused
-
-  await mustFailWithErrorMsg(
-    testState.lasset.bond_for_statom(testState.wallets.d, stAtomBondAmount),
-    "contract is temporarily paused"
-  ); // hub must be paused
-  await mustFailWithErrorMsg(
-    testState.lasset.finish(testState.wallets.d),
-    "contract is temporarily paused"
-  ); // hub must be paused
-  await mustFailWithErrorMsg(
-    testState.lasset.transfer_cw20_token(
-      testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress,
-      testState.wallets.d,
+describe('Pausable contracts', () => {
+  const testState = new TestStateLocalCosmosTestNet();
+  const stAtomBondAmount = 20_000;
+  beforeAll(async () => {
+    await testState.init();
+    await testState.lasset.bond_for_statom(
       testState.wallets.c,
-      1_000_000_000
-    ),
-    "contract is temporarily paused"
-  );
+      stAtomBondAmount,
+    );
+    await wait(2500);
+    await testState.lasset.dispatch_rewards(testState.wallets.ownerWallet);
+  });
+  describe('add guardians', () => {
+    test('only owner can manage guardians', async () => {
+      await expect(
+        testState.lasset.add_guardians(testState.wallets.d, [
+          (await testState.wallets.a.getAccounts())[0].address,
+          (await testState.wallets.b.getAccounts())[0].address,
+        ]),
+      ).rejects.toThrow(/unauthorized/);
+      const res = await testState.lasset.add_guardians(
+        testState.wallets.ownerWallet,
+        [
+          (await testState.wallets.a.getAccounts())[0].address,
+          (await testState.wallets.b.getAccounts())[0].address,
+        ],
+      );
+      expect(res.code).toEqual(0);
+    });
+  });
+  describe('pause', () => {
+    test('guardian B pauses the contracts', async () => {
+      const res = await testState.lasset.pause_contracts(testState.wallets.b);
+      expect(res.code).toEqual(0);
+    });
 
-  await mustFailWithErrorMsg(
-    testState.lasset.transfer_cw20_token(
-      testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress,
-      testState.wallets.c,
-      testState.wallets.d,
-      1_000_000_000
-    ),
-    "contract is temporarily paused"
-  );
+    test('all actions must return error on pause', async () => {
+      await expect(
+        testState.lasset.dispatch_rewards(testState.wallets.ownerWallet),
+      ).rejects.toThrow(/contract is temporarily paused/);
 
-  // only the owner can unpause contracts
-  await mustFailWithErrorMsg(
-    testState.lasset.unpauseContracts(testState.wallets.b),
-    "unauthorized"
-  );
+      await expect(
+        testState.lasset.bond_for_statom(testState.wallets.d, stAtomBondAmount),
+      ).rejects.toThrow(/contract is temporarily paused/);
 
-  // unpause contracts
-  await mustPass(
-    testState.lasset.unpauseContracts(testState.wallets.ownerWallet)
-  );
+      await expect(
+        testState.lasset.transfer_cw20_token(
+          testState.lasset.contractInfo.lido_cosmos_token_statom
+            .contractAddress,
+          testState.wallets.d,
+          testState.wallets.c,
+          1_000,
+        ),
+      ).rejects.toThrow(/contract is temporarily paused/);
 
-  // check that all contracts are unpaused
-  await mustPass(
-    testState.lasset.dispatch_rewards(testState.wallets.ownerWallet)
-  );
-  await mustPass(
-    testState.lasset.bond_for_statom(testState.wallets.d, stAtomBondAmount)
-  );
+      await expect(
+        testState.lasset.transfer_cw20_token(
+          testState.lasset.contractInfo.lido_cosmos_token_statom
+            .contractAddress,
+          testState.wallets.c,
+          testState.wallets.d,
+          1_000,
+        ),
+      ).rejects.toThrow(/contract is temporarily paused/);
+    });
+  });
+  describe('unpause', () => {
+    test('only the owner can unpause contracts', async () => {
+      await expect(
+        testState.lasset.unpause_contracts(testState.wallets.b),
+      ).rejects.toThrow(/unauthorized/);
+    });
+    test('owner unpauses the contracts', async () => {
+      const res = await testState.lasset.unpause_contracts(
+        testState.wallets.ownerWallet,
+      );
+      expect(res.code).toEqual(0);
+    });
+    test('all actions must work now', async () => {
+      // check that all contracts are unpaused
+      const dispatch = await testState.lasset.dispatch_rewards(
+        testState.wallets.ownerWallet,
+      );
+      expect(dispatch.code).toEqual(0);
 
-  await mustPass(
-    testState.lasset.transfer_cw20_token(
-      testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress,
-      testState.wallets.d,
-      testState.wallets.c,
-      1_000_000_000
-    )
-  );
+      const bond = await testState.lasset.bond_for_statom(
+        testState.wallets.d,
+        stAtomBondAmount,
+      );
+      expect(bond.code).toEqual(0);
 
-  await mustPass(
-    testState.lasset.transfer_cw20_token(
-      testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress,
-      testState.wallets.c,
-      testState.wallets.d,
-      1_000_000_000
-    )
-  );
+      const transfer = await testState.lasset.transfer_cw20_token(
+        testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress,
+        testState.wallets.d,
+        testState.wallets.c,
+        1_000,
+      );
+      expect(transfer.code).toEqual(0);
 
-  // only the owner can manage guardians
-  await mustFailWithErrorMsg(
-    testState.lasset.remove_guardians(testState.wallets.b, [
-      testState.wallets.a.key.accAddress,
-    ]),
-    "unauthorized"
-  );
+      const transferCW20 = await testState.lasset.transfer_cw20_token(
+        testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress,
+        testState.wallets.c,
+        testState.wallets.d,
+        1_000,
+      );
+      expect(transferCW20.code).toEqual(0);
+    });
+  });
+  describe('remove guardians', () => {
+    test('only owner can manage guardians', async () => {
+      await expect(
+        testState.lasset.remove_guardians(testState.wallets.b, [
+          (await testState.wallets.a.getAccounts())[0].address,
+        ]),
+      ).rejects.toThrow(/unauthorized/);
+    });
 
-  await mustPass(
-    testState.lasset.remove_guardians(testState.wallets.ownerWallet, [
-      testState.wallets.b.key.accAddress,
-    ])
-  );
+    test('owner can remove guardians', async () => {
+      const res = await testState.lasset.remove_guardians(
+        testState.wallets.ownerWallet,
+        [(await testState.wallets.b.getAccounts())[0].address],
+      );
+      expect(res.code).toEqual(0);
+    });
 
-  // guardian B cannot pause the contracts because it was removed
-  await mustFail(testState.lasset.pauseContracts(testState.wallets.b));
+    test('guardian B cannot pause the contracts because it was removed', async () => {
+      await expect(
+        testState.lasset.pause_contracts(testState.wallets.b),
+      ).rejects.toThrow(/unauthorized/);
+    });
 
-  // but guardian A can pause the contracts
-  await mustPass(testState.lasset.pauseContracts(testState.wallets.a));
-}
-
-main()
-  .then(() => console.log("done"))
-  .catch(console.log);
+    test('guardian A can pause the contracts', async () => {
+      const res = await testState.lasset.pause_contracts(testState.wallets.a);
+      expect(res.code).toEqual(0);
+    });
+  });
+});

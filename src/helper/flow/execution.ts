@@ -1,56 +1,65 @@
 import {
-  BlockTxBroadcastResult,
-  Coins,
-  Fee,
-  Msg,
-  MsgExecuteContract,
+  coins,
+  DirectSecp256k1HdWallet,
+  EncodeObject,
+} from '@cosmjs/proto-signing';
+import { Coin, StdFee, DeliverTxResponse } from '@cosmjs/stargate';
+import { toAscii } from '@cosmjs/encoding';
+import {
+  MsgExecuteContractEncodeObject,
+  MsgInstantiateContractEncodeObject,
+} from '@cosmjs/cosmwasm-stargate';
+import {
   MsgInstantiateContract,
-  Wallet,
-} from "@terra-money/terra.js";
+  MsgExecuteContract,
+} from 'cosmjs-types/cosmwasm/wasm/v1/tx';
+import { getSignedClient } from '../../testcases/cosmos';
 
 export async function instantiate(
-  sender: Wallet,
+  sender: DirectSecp256k1HdWallet,
   codeId: number,
   initMsg: object,
-  tokens?: Coins,
-  fee?: Fee
-): ReturnType<typeof send_transaction> {
-  console.error(`instantiate ${codeId} w/ ${JSON.stringify(initMsg)}`);
-  return await send_transaction(
-    sender,
-    [
-      new MsgInstantiateContract(
-        sender.key.accAddress,
-        "",
-        codeId,
-        initMsg,
-        tokens
-      ),
-    ],
-    fee
-  );
+  tokens?: Coin[],
+  fee?: StdFee,
+): Promise<DeliverTxResponse> {
+  console.info(`instantiate ${codeId} w/ ${JSON.stringify(initMsg)}`);
+  const client = await getSignedClient(sender);
+  const address = (await sender.getAccounts())[0].address;
+
+  const theMsg: MsgInstantiateContractEncodeObject = {
+    typeUrl: '/cosmwasm.wasm.v1.MsgInstantiateContract',
+    value: MsgInstantiateContract.fromPartial({
+      sender: address,
+      codeId: codeId,
+      label: 'my escrow',
+      msg: toAscii(JSON.stringify(initMsg)),
+      funds: tokens ? [...tokens] : [],
+    }),
+  };
+
+  return client.signAndBroadcast(address, [theMsg], fee);
 }
 
 export async function execute(
-  sender: Wallet,
+  sender: DirectSecp256k1HdWallet,
   contract: string,
   executeMsg: object,
-  tokens?: Coins,
-  fee?: Fee
+  tokens?: Coin[],
+  fee: StdFee | 'auto' = 'auto',
 ): ReturnType<typeof send_transaction> {
-  console.error(`execute ${contract} w/ ${JSON.stringify(executeMsg)}`);
-  return await send_transaction(
-    sender,
-    [
-      new MsgExecuteContract(
-        sender.key.accAddress,
-        contract,
-        executeMsg,
-        tokens
-      ),
-    ],
-    fee
-  );
+  console.info(`execute ${contract} w/ ${JSON.stringify(executeMsg)}`, fee);
+
+  const theMsg: MsgExecuteContractEncodeObject = {
+    typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
+    value: MsgExecuteContract.fromPartial({
+      sender: (await sender.getAccounts())[0].address,
+      contract,
+      msg: toAscii(JSON.stringify(executeMsg)),
+      funds: tokens ? [...tokens] : [],
+    }),
+  };
+
+  return send_transaction(sender, [theMsg], fee);
 }
 
 // const mantleStateForBlockResponse = new MantleState(
@@ -61,48 +70,14 @@ export async function execute(
 // );
 
 export async function send_transaction(
-  sender: Wallet,
-  msgs: Msg[],
-  fee: Fee = new Fee(10000000, "10000000uusd")
-): Promise<BlockTxBroadcastResult> {
-  return Promise.resolve()
-    .then(() =>
-      sender.createAndSignTx({
-        msgs,
-        fee: fee,
-      })
-    )
-    .then((tx) => sender.lcd.tx.broadcast(tx))
-    .then(async (result) => {
-      console.log(result);
-      console.error(result.txhash);
-      // await mantleStateForBlockResponse
-      //   .query(
-      //     gql`
-      //       query {
-      //         BlockState {
-      //           ResponseDeliverTx {
-      //             GasWanted
-      //           }
-      //         }
-      //       }
-      //     `,
-      //     {}
-      //   )
-      await Promise.resolve();
-      // .then((r) =>
-      //   r.BlockState.ResponseDeliverTx.reduce(
-      //     (p: any, c: { GasWanted: any }) => p + +c.GasWanted,
-      //     0
-      //   )
-      // )
-      // .then(gas => makeRecord(msgs, gas))
-      // .catch((e) => {
-      //   console.error(e)
-      //   // noop if mantle couldn't be connected
-      // })
-      // .then(() => new Promise(resolve => setTimeout(resolve, 1000)))
-
-      return result;
-    });
+  sender: DirectSecp256k1HdWallet,
+  msgs: EncodeObject[],
+  fee: StdFee | 'auto' = {
+    amount: coins(5000000, 'ustake'),
+    gas: '89000000',
+  },
+): Promise<DeliverTxResponse> {
+  const client = await getSignedClient(sender);
+  const address = (await sender.getAccounts())[0].address;
+  return client.signAndBroadcast(address, msgs, fee);
 }

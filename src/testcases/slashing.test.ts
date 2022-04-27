@@ -1,162 +1,130 @@
-import { floateq as floateq, mustPass } from "../helper/flow/must";
-import { get_expected_sum_from_requests } from "./common_localtestnet";
-import AnchorbAssetQueryHelper from "../helper/lasset_queryhelper";
-import { wait } from "../helper/flow/sleep";
-import * as assert from "assert";
+import '../helper/cosmos.js.mocker';
+import AnchorbAssetQueryHelper from '../helper/lasset_queryhelper';
+import { wait } from '../helper/flow/sleep';
 import {
   disconnectValidator,
-  TestStateLocalTestNet,
+  TestStateLocalCosmosTestNet,
   vals,
-} from "./common_localtestnet";
+} from './common_localcosmosnet';
 
-async function main() {
-  const testState = new TestStateLocalTestNet();
-  await testState.init();
-  const querier = new AnchorbAssetQueryHelper(
-    testState.lcdClient,
-    testState.lasset
-  );
+const ITER_TIMES = 72;
 
-  const statomContractAddress =
-    testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress;
+describe('Slashing', () => {
+  const testState = new TestStateLocalCosmosTestNet();
+  let querier: AnchorbAssetQueryHelper;
 
-  // blocks 69 - 70
-  await wait(1000);
+  let statomContractAddress: string;
+  let total_statom_bond_amount_before_slashing: number;
 
-  await mustPass(
-    testState.lasset.add_validator(
+  beforeAll(async () => {
+    await testState.init();
+    querier = new AnchorbAssetQueryHelper(testState.wrapper, testState.lasset);
+    statomContractAddress =
+      testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress;
+  });
+
+  test('add validators', async () => {
+    await testState.lasset.add_validator(
       testState.wallets.ownerWallet,
-      vals[1].address
-    )
-  );
-  await mustPass(
-    testState.lasset.add_validator(
-      testState.wallets.ownerWallet,
-      vals[2].address
-    )
-  );
-  await mustPass(
-    testState.lasset.add_validator(
-      testState.wallets.ownerWallet,
-      vals[3].address
-    )
-  );
-
-  assert.ok((await querier.statom_exchange_rate()) == 1);
-
-  await mustPass(
-    testState.lasset.bond_for_statom(testState.wallets.a, 1_000_000_000)
-  );
-
-  await wait(4500);
-
-  let total_statom_bond_amount_before_slashing = await querier.total_bond_statom_amount();
-
-  await disconnectValidator("terradnode1");
-  await testState.waitForJailed("terradnode1");
-
-  await wait(10000);
-
-  await mustPass(testState.lasset.slashing(testState.wallets.a));
-
-  await wait(2500);
-
-  let total_statom_bond_amount_after_slashing = await querier.total_bond_statom_amount();
-
-  assert.ok(
-    total_statom_bond_amount_before_slashing >
-      total_statom_bond_amount_after_slashing
-  );
-
-  assert.ok((await querier.statom_exchange_rate()) < 1);
-
-  await mustPass(testState.lasset.bond_for_statom(testState.wallets.a, 1));
-  assert.ok((await querier.statom_exchange_rate()) < 1);
-
-  await wait(5000);
-
-  let statom_ex_rate_before_second_bond = await querier.statom_exchange_rate();
-  assert.ok(statom_ex_rate_before_second_bond < 1);
-
-  await mustPass(
-    testState.lasset.bond_for_statom(testState.wallets.a, 2_000_000)
-  );
-
-  let statom_ex_rate_after_second_bond = await querier.statom_exchange_rate();
-
-  assert.ok(statom_ex_rate_after_second_bond < 1);
-
-  for (let i = 0; i < 74; i++) {
-    await mustPass(
-      testState.lasset.bond_for_statom(testState.wallets.a, 2_000_000)
+      vals[1].address,
     );
-  }
+    await testState.lasset.add_validator(
+      testState.wallets.ownerWallet,
+      vals[2].address,
+    );
+    await testState.lasset.add_validator(
+      testState.wallets.ownerWallet,
+      vals[3].address,
+    );
+  });
 
-  await mustPass(testState.lasset.dispatch_rewards(testState.wallets.a));
+  test('exchange rate must be 1', async () => {
+    expect(await querier.statom_exchange_rate()).toEqual(1);
+  });
 
-  // blocks 258 - 307
-  await wait(25000);
+  test('bond for statom', async () => {
+    const res = await testState.lasset.bond_for_statom(
+      testState.wallets.ownerWallet,
+      1_000,
+    );
+    expect(res.code).toEqual(0);
+    total_statom_bond_amount_before_slashing =
+      await querier.total_bond_statom_amount();
+  });
 
-  // blocks 308 - 382
-  const initial_statom_balance_a = await querier.balance_statom(
-    testState.wallets.a.key.accAddress
-  );
-  const initial_uluna_balance_a = Number(
-    (
-      await testState.wallets.a.lcd.bank.balance(
-        testState.wallets.a.key.accAddress
-      )
-    )[0].get("uluna").amount
-  );
-  for (let i = 0; i < 75; i++) {
-    await testState.lasset.send_cw20_token(
-      statomContractAddress,
+  test('disconnect validator', async () => {
+    await disconnectValidator('node1');
+    await expect(testState.waitForJailed()).resolves.not.toThrow();
+    await wait(10000);
+  });
+
+  test('validate numbers', async () => {
+    expect(total_statom_bond_amount_before_slashing).toBeGreaterThan(
+      await querier.total_bond_statom_amount(),
+    );
+  });
+
+  test('exchange rate must drop', async () => {
+    expect(await querier.statom_exchange_rate()).toBeLessThan(1);
+  });
+
+  test('bond after slashing', async () => {
+    const res = await testState.lasset.bond_for_statom(testState.wallets.a, 1);
+    expect(res.code).toEqual(0);
+    expect(await querier.statom_exchange_rate()).toBeLessThan(1);
+  });
+
+  test('validate exchange rate', async () => {
+    await wait(5000);
+    expect(await querier.statom_exchange_rate()).toBeLessThan(1);
+  });
+
+  test('third bond', async () => {
+    const res = await testState.lasset.bond_for_statom(
       testState.wallets.a,
-      2_000_000,
-      { unbond: {} },
-      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress
+      2_000,
     );
-  }
+    expect(res.code).toEqual(0);
+    expect(await querier.statom_exchange_rate()).toBeLessThan(1);
+  });
 
-  assert.equal(
-    initial_statom_balance_a - 150_000_000,
-    await querier.balance_statom(testState.wallets.a.key.accAddress)
-  );
+  test('cycle of bonds', async () => {
+    for (let i = 0; i < ITER_TIMES; i++) {
+      const res = await testState.lasset.bond_for_statom(
+        testState.wallets.a,
+        2_000,
+      );
+      expect(res.code).toEqual(0);
+    }
+  });
 
-  const unbond_requests_a = await querier.unbond_requests(
-    testState.wallets.a.key.accAddress
-  );
+  test('dispatch rewards', async () => {
+    await wait(25000);
+    const res = await testState.lasset.dispatch_rewards(testState.wallets.a);
+    expect(res.code).toEqual(0);
+  });
 
-  // blocks 459 - 508
-  await wait(25000);
+  test('unbond cycle', async () => {
+    const initial_statom_balance_a = await querier.balance_statom(
+      testState.wallets.a,
+    );
+    //
+    for (let i = 0; i < ITER_TIMES / 3; i++) {
+      await testState.lasset.send_cw20_token(
+        statomContractAddress,
+        testState.wallets.a,
+        2_000,
+        { unbond: {} },
+        testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
+      );
+    }
 
-  // blocks 509 - 510
-  await mustPass(testState.lasset.finish(testState.wallets.a));
+    expect(initial_statom_balance_a - (ITER_TIMES / 3) * 2000).toEqual(
+      await querier.balance_statom(testState.wallets.a),
+    );
+  });
 
-  //blocks 511 - 512
-  await mustPass(testState.lasset.dispatch_rewards(testState.wallets.a));
-
-  const uluna_balance_a = Number(
-    (
-      await testState.wallets.a.lcd.bank.balance(
-        testState.wallets.a.key.accAddress
-      )
-    )[0].get("uluna").amount
-  );
-
-  const actual_withdrawal_sum_a =
-    Number(uluna_balance_a) - initial_uluna_balance_a;
-
-  const expected_withdrawal_sum_a = await get_expected_sum_from_requests(
-    querier,
-    unbond_requests_a
-  );
-
-  assert.ok(actual_withdrawal_sum_a < 150_000_001);
-
-  assert.ok(floateq(expected_withdrawal_sum_a, actual_withdrawal_sum_a, 1e-4));
-}
-
-main()
-  .then(() => console.log("done"))
-  .catch(console.log);
+  test('withdraw', async () => {
+    await testState.lasset.dispatch_rewards(testState.wallets.a);
+  });
+});

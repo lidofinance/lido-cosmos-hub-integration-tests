@@ -3,6 +3,7 @@ yarn-error.log
 keystore.db
 yarn.lock
 lido-cosmos-contracts/artifacts/*
+.jest
 
 # IDEs
 *.iml
