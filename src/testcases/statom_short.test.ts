@@ -262,13 +262,14 @@ describe('StAtom / Short', () => {
       expect(await querier.balance_statom(testState.wallets.b)).toEqual(3_000);
     });
     test('decrease allowance', async () => {
-      testState.lasset.decrease_allowance(
+      const res = await testState.lasset.decrease_allowance(
         statomContractAddress,
         testState.wallets.a,
         testState.wallets.b,
         1_000,
         { never: {} },
       );
+      expect(res.code).toEqual(0);
     });
     test('should fail transfer', async () => {
       expect(await querier.balance_statom(testState.wallets.a)).toEqual(4_000);
