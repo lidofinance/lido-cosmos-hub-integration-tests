@@ -29,7 +29,7 @@ import { MultisigThresholdPubkey, StdFee } from '@cosmjs/amino';
 import { pubkeyToAddress } from '@cosmjs/amino';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { toAscii } from '@cosmjs/encoding';
-import { mnemonicToWallet } from '../testcases/common_localcosmosnet';
+import { mnemonicToWallet, sleep } from '../testcases/common_localcosmosnet';
 import {
   MsgDelegate,
   MsgUndelegate,
@@ -438,7 +438,7 @@ export default class LidoAsset {
     src_validator_address: string,
     redelegations: Array<[string, { amount: string; denom: string }]>,
   ): Promise<DeliverTxResponse> {
-    const contract = this.contractInfo['lido_cosmos_hub'].contractAddress;
+    const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
     const bondExecution = await execute(
       sender,
       contract,
@@ -516,6 +516,7 @@ export default class LidoAsset {
 
   public async receive_tokenized_share(
     sender: DirectSecp256k1HdWallet,
+    share: Coin,
   ): Promise<DeliverTxResponse> {
     const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
     const finishExecution = await execute(
@@ -524,8 +525,8 @@ export default class LidoAsset {
       {
         receive_tokenized_share: {},
       },
-      undefined,
-      { amount: [{ amount: '75000', denom: 'stake' }], gas: '300000' },
+      [share],
+      { amount: [{ amount: '75000', denom: 'stake' }], gas: '1000000' },
     );
     assertIsDeliverTxSuccess(finishExecution);
     return finishExecution;
@@ -969,25 +970,22 @@ export default class LidoAsset {
   };
 
   redistribute = async (
-    multisigPubkey: MultisigThresholdPubkey,
-    mnemonics: string[],
+    owner: DirectSecp256k1HdWallet,
     hubContract: string,
     validators: { validator: string; amount: number }[],
-  ): Promise<void> => {
+  ): Promise<boolean> => {
     const inprogress = await this.incoming_redelegations_inprogress(
       hubContract,
       validators.map((v) => v.validator),
     );
+    console.log('inprogress', inprogress);
     const redelegations = get_redelegations(validators, inprogress);
     for (const r of redelegations) {
-      await this.redelegate_proxy_multisig(
-        hubContract,
-        multisigPubkey,
-        mnemonics,
-        r.srcVal,
-        [[r.dstVal, { amount: String(r.amount), denom: atomDenom }]],
-      );
+      await this.redelegate_proxy(owner, r.srcVal, [
+        [r.dstVal, { amount: String(r.amount), denom: atomDenom }],
+      ]);
     }
+    return true;
   };
 
   redelegate_proxy_multisig = async (

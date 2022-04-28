@@ -23,11 +23,11 @@ export const get_redelegations = (
   const validators_undelegate_from = validators.filter(
     (v) =>
       v.amount > target &&
-      validators_incoming_validations.includes(v.validator),
+      !validators_incoming_validations.includes(v.validator),
   );
 
   const redelegations: Array<Redelegation> = [];
-  let u = validators_undelegate_from.pop();
+  let u = validators_undelegate_from.pop() || { amount: 0, validator: null };
   while (u.amount > target) {
     const can_to_undelegate = u.amount - target;
     let candidat_delegate_to_idx = 0;
