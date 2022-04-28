@@ -13,16 +13,14 @@ describe('StAtom / Short', () => {
     testState = new TestStateLocalCosmosTestNet();
     await testState.init();
     querier = new LidoAssetQueryHelper(testState.wrapper, testState.lasset);
-    // const x = await testState.wrapper.queryClient.bank.allBalances(
-    //   (
-    //     await testState.wallets.a.getAccounts()
-    //   )[0].address,
-    // );
-    // console.log(x);
     statomContractAddress =
       testState.lasset.contractInfo.lido_cosmos_token_statom.contractAddress;
   });
   describe('stake', () => {
+    let startBalance: number;
+    beforeAll(async () => {
+      startBalance = await querier.balance_statom(testState.wallets.a);
+    });
     test('regular', async () => {
       const response = await testState.lasset.bond_for_statom(
         testState.wallets.a,
@@ -36,7 +34,7 @@ describe('StAtom / Short', () => {
     test('balance by query should be increased', async () => {
       await wait(5000);
       const balance = await querier.balance_statom(testState.wallets.a);
-      expect(balance).toEqual(10_000);
+      expect(balance - startBalance).toEqual(10_000);
     });
   });
   describe('transfer statom', () => {
@@ -238,6 +236,8 @@ describe('StAtom / Short', () => {
       expect(res.code).toEqual(0);
     });
     test('transfer statom step 1', async () => {
+      const startA = await querier.balance_statom(testState.wallets.a);
+      const startB = await querier.balance_statom(testState.wallets.b);
       const res = await testState.lasset.transfer_from_cw20_token(
         statomContractAddress,
         testState.wallets.b,
@@ -246,10 +246,16 @@ describe('StAtom / Short', () => {
         1_000,
       );
       expect(res.code).toEqual(0);
-      expect(await querier.balance_statom(testState.wallets.a)).toEqual(6_000);
-      expect(await querier.balance_statom(testState.wallets.b)).toEqual(1_000);
+      expect(
+        startA - (await querier.balance_statom(testState.wallets.a)),
+      ).toEqual(1_000);
+      expect(
+        startB - (await querier.balance_statom(testState.wallets.b)),
+      ).toEqual(-1_000);
     });
     test('transfer statom step 2', async () => {
+      const startA = await querier.balance_statom(testState.wallets.a);
+      const startB = await querier.balance_statom(testState.wallets.b);
       const res = await testState.lasset.transfer_from_cw20_token(
         statomContractAddress,
         testState.wallets.b,
@@ -258,8 +264,12 @@ describe('StAtom / Short', () => {
         2_000,
       );
       expect(res.code).toEqual(0);
-      expect(await querier.balance_statom(testState.wallets.a)).toEqual(4_000);
-      expect(await querier.balance_statom(testState.wallets.b)).toEqual(3_000);
+      expect(
+        startA - (await querier.balance_statom(testState.wallets.a)),
+      ).toEqual(2_000);
+      expect(
+        startB - (await querier.balance_statom(testState.wallets.b)),
+      ).toEqual(-2_000);
     });
     test('decrease allowance', async () => {
       const res = await testState.lasset.decrease_allowance(
@@ -272,7 +282,8 @@ describe('StAtom / Short', () => {
       expect(res.code).toEqual(0);
     });
     test('should fail transfer', async () => {
-      expect(await querier.balance_statom(testState.wallets.a)).toEqual(4_000);
+      const startA = await querier.balance_statom(testState.wallets.a);
+      const startB = await querier.balance_statom(testState.wallets.b);
       await expect(
         testState.lasset.transfer_from_cw20_token(
           statomContractAddress,
@@ -284,18 +295,16 @@ describe('StAtom / Short', () => {
       ).rejects.toThrow(
         / No allowance for this account: execute wasm contract failed/,
       );
-      expect(await querier.balance_statom(testState.wallets.a)).toEqual(4_000);
-      expect(
-        await querier.balance_statom(
-          (
-            await testState.wallets.b.getAccounts()
-          )[0].address,
-        ),
-      ).toEqual(3_000);
+      expect(await querier.balance_statom(testState.wallets.a)).toEqual(startA);
+      expect(await querier.balance_statom(await testState.wallets.b)).toEqual(
+        startB,
+      );
     });
   });
   describe('BurnFrom', () => {
     test('increase allowance and burn_from_cw20_token', async () => {
+      const startA = await querier.balance_statom(testState.wallets.a);
+      const startB = await querier.balance_statom(testState.wallets.b);
       const res = await testState.lasset.increase_allowance(
         statomContractAddress,
         testState.wallets.a,
@@ -310,12 +319,14 @@ describe('StAtom / Short', () => {
         testState.wallets.a,
         1_000,
       );
-      expect(await querier.balance_statom(testState.wallets.a)).toEqual(3_000);
-      expect(Number((await querier.token_info_statom()).total_supply)).toEqual(
-        6_000,
+      expect(await querier.balance_statom(testState.wallets.a)).toEqual(
+        startA - 1_000,
       );
+      expect(await querier.balance_statom(testState.wallets.b)).toEqual(startB);
     });
     test('decrease allowance and burn', async () => {
+      const startA = await querier.balance_statom(testState.wallets.a);
+      const startB = await querier.balance_statom(testState.wallets.b);
       await testState.lasset.decrease_allowance(
         statomContractAddress,
         testState.wallets.a,
@@ -333,13 +344,17 @@ describe('StAtom / Short', () => {
       ).rejects.toThrow(
         /No allowance for this account: execute wasm contract failed/,
       );
-      expect(await querier.balance_statom(testState.wallets.a)).toEqual(3_000);
-      expect(Number((await querier.token_info_statom()).total_supply)).toEqual(
-        6_000,
-      );
+      expect(await querier.balance_statom(testState.wallets.a)).toEqual(startA);
+      expect(await querier.balance_statom(testState.wallets.b)).toEqual(startB);
     });
   });
   describe('SendFrom', () => {
+    let startTotalSupply: number;
+    beforeAll(async () => {
+      startTotalSupply = Number(
+        (await querier.token_info_statom()).total_supply,
+      );
+    });
     test('increase allowance', async () => {
       const resAllowance = await testState.lasset.increase_allowance(
         statomContractAddress,
@@ -363,9 +378,10 @@ describe('StAtom / Short', () => {
     });
 
     test('check total supply', async () => {
-      expect(Number((await querier.token_info_statom()).total_supply)).toEqual(
-        5_750,
-      );
+      expect(
+        startTotalSupply -
+          Number((await querier.token_info_statom()).total_supply),
+      ).toEqual(250);
     });
 
     test('decrease allowance and unbond', async () => {
@@ -389,9 +405,10 @@ describe('StAtom / Short', () => {
       ).rejects.toThrow(/No allowance for this account/);
     });
     test('check total supply', async () => {
-      expect(Number((await querier.token_info_statom()).total_supply)).toEqual(
-        5_750,
-      );
+      expect(
+        startTotalSupply -
+          Number((await querier.token_info_statom()).total_supply),
+      ).toEqual(250);
     });
   });
 });
