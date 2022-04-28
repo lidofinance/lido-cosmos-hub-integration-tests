@@ -872,13 +872,16 @@ export default class LidoAsset {
 
   public async pause_contracts(
     sender: DirectSecp256k1HdWallet,
+    duration: number,
   ): Promise<DeliverTxResponse> {
     const contract = this.contractInfo.lido_cosmos_hub.contractAddress;
     const pauseContracts = await execute(
       sender,
       contract,
       {
-        pause_contracts: {},
+        pause_contracts: {
+          duration,
+        },
       },
       undefined,
       { amount: [{ amount: '150000', denom: 'stake' }], gas: '600000' },

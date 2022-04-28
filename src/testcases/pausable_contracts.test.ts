@@ -34,7 +34,10 @@ describe('Pausable contracts', () => {
   });
   describe('pause', () => {
     test('guardian B pauses the contracts', async () => {
-      const res = await testState.lasset.pause_contracts(testState.wallets.b);
+      const res = await testState.lasset.pause_contracts(
+        testState.wallets.b,
+        10_000,
+      );
       expect(res.code).toEqual(0);
     });
 
@@ -129,12 +132,15 @@ describe('Pausable contracts', () => {
 
     test('guardian B cannot pause the contracts because it was removed', async () => {
       await expect(
-        testState.lasset.pause_contracts(testState.wallets.b),
+        testState.lasset.pause_contracts(testState.wallets.b, 10_000),
       ).rejects.toThrow(/unauthorized/);
     });
 
     test('guardian A can pause the contracts', async () => {
-      const res = await testState.lasset.pause_contracts(testState.wallets.a);
+      const res = await testState.lasset.pause_contracts(
+        testState.wallets.a,
+        10_000,
+      );
       expect(res.code).toEqual(0);
     });
   });
