@@ -175,7 +175,15 @@ describe('StAtom / Short', () => {
     describe('receive tokenized share', () => {
       let tokenizedShare: Coin;
       let startingStatomBalance: number;
+      let initialTotalSupply: number;
+      let initialBondAmount: number;
+      let exchangeRate: number;
       beforeAll(async () => {
+        exchangeRate = await querier.statom_exchange_rate();
+        initialTotalSupply = Number(
+          (await querier.token_info_statom()).total_supply,
+        );
+        initialBondAmount = await querier.total_bond_statom_amount();
         const balances = await testState.wrapper.queryClient.bank.allBalances(
           (
             await testState.wallets.a.getAccounts()
@@ -210,6 +218,18 @@ describe('StAtom / Short', () => {
           (await querier.balance_statom(testState.wallets.a)) -
             startingStatomBalance,
         ).toEqual(1_000);
+      });
+      test('total supply must change', async () => {
+        expect(
+          Number((await querier.token_info_statom()).total_supply) -
+            initialTotalSupply,
+        ).toEqual(1_000);
+      });
+      test('total bond amount must change', async () => {
+        const currentBondAmount = await querier.total_bond_statom_amount();
+        expect(currentBondAmount - initialBondAmount).toEqual(
+          1_000 * exchangeRate,
+        );
       });
     });
   });
