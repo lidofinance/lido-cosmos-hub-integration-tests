@@ -10,7 +10,6 @@ import {
   coins,
   DeliverTxResponse,
   makeMultisignedTx,
-  MsgDelegateEncodeObject,
   SignerData,
 } from '@cosmjs/stargate';
 import {
@@ -29,7 +28,7 @@ import { MultisigThresholdPubkey, StdFee } from '@cosmjs/amino';
 import { pubkeyToAddress } from '@cosmjs/amino';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { toAscii } from '@cosmjs/encoding';
-import { mnemonicToWallet, sleep } from '../testcases/common_localcosmosnet';
+import { mnemonicToWallet } from '../testcases/common_localcosmosnet';
 import {
   MsgDelegate,
   MsgUndelegate,

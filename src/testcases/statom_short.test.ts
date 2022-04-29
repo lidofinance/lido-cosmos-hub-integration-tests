@@ -175,7 +175,6 @@ describe('StAtom / Short', () => {
     describe('receive tokenized share', () => {
       let tokenizedShare: Coin;
       let startingStatomBalance: number;
-      let exchangeRate: number;
       beforeAll(async () => {
         const balances = await testState.wrapper.queryClient.bank.allBalances(
           (

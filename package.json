@@ -9,8 +9,8 @@
     "test:short:pausable": "jest --runInBand -b src/testcases/pausable",
     "test:short:redistribution": "jest --runInBand -b src/testcases/redistribution",
     "test:short:slashing": "jest --runInBand -b src/testcases/slashing",
-    "lint": "tsc -p . --noEmit && tslint -p . && prettier 'src/**/*.{ts, json}' -l",
-    "fmt": "tslint -p . --fix && prettier 'src/**/*.{ts, json}' --write"
+    "lint": "eslint ./src",
+    "fmt": "eslint ./src --fix"
   },
   "author": "LIDO",
   "license": "ISC",

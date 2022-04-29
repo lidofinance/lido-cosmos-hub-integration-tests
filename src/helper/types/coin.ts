@@ -1,1 +1,1 @@
-export const atomDenom = "stake";
+export const atomDenom = 'stake';

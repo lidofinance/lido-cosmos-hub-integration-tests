@@ -1,8 +1,8 @@
-import { DeliverTxResponse } from "@cosmjs/stargate";
+import { DeliverTxResponse } from '@cosmjs/stargate';
 
 export const getResponseAttributes = (
   response: DeliverTxResponse,
-  event: string
+  event: string,
 ): Record<string, any> => {
   const [data] = JSON.parse(response.rawLog);
   return data.events
