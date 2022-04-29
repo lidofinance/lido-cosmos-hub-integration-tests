@@ -10,6 +10,5 @@ lido-cosmos-contracts/artifacts/*
 .idea
 .DS_Store
 *_action.json
-*_state.json
 
 write-file-atomic*
