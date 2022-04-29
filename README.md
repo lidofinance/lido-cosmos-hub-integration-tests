@@ -10,10 +10,10 @@ yarn
 
 #### 3. Run the 4-validators LocalTerra set up
 
-To start the 4-set validators environment - run `make start` in the `src/testkit` dir:
+To start the 4-set validators environment - run `make start` in the `testkit` dir:
 
 ```
-cd testnet
+cd testkit
 make restart
 ```
 
