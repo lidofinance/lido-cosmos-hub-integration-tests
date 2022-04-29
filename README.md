@@ -1,5 +1,13 @@
 # How to run this code?
 
+#### 0. Clone wasmd repository and build image
+
+```shell
+git clone https://github.com/cosmos/wasmd -b feat/wasmd-ibcv3-ls-module-alongside-cosmos-sdk
+cd wasmd
+docker build . -t wasm-n
+```
+
 #### 1. Clone repository and install or update dependencies with command
 
 ```shell
