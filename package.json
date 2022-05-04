@@ -9,6 +9,7 @@
     "test:short:pausable": "jest --runInBand -b src/testcases/pausable",
     "test:short:redistribution": "jest --runInBand -b src/testcases/redistribution",
     "test:short:slashing": "jest --runInBand -b src/testcases/slashing",
+    "test:short:restaking_slashed": "jest --runInBand -b src/testcases/restaking_slashed",
     "lint": "eslint ./src",
     "fmt": "eslint ./src --fix"
   },

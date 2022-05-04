@@ -108,7 +108,6 @@ describe('Slashing', () => {
     const initial_statom_balance_a = await querier.balance_statom(
       testState.wallets.a,
     );
-    //
     for (let i = 0; i < ITER_TIMES / 3; i++) {
       await testState.lasset.send_cw20_token(
         statomContractAddress,
