@@ -96,7 +96,7 @@ describe('Slashing', () => {
       );
       expect(res.code).toEqual(0);
     }
-  });
+  }, 2_000_000);
 
   test('dispatch rewards', async () => {
     await wait(25000);
