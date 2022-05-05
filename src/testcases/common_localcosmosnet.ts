@@ -124,10 +124,15 @@ export class TestStateLocalCosmosTestNet {
       if (threshold != undefined && c > threshold) {
         throw new Error('timed out for waiting jailing validator');
       }
-      const v = await this.wrapper.queryClient.staking.validators(
-        'BOND_STATUS_UNBONDING',
-      );
-      if (v.pagination.total > 0 && v.validators.find((v) => v.jailed)) {
+      const unbondedValidators =
+        await this.wrapper.queryClient.staking.validators(
+          'BOND_STATUS_UNBONDED',
+        );
+
+      if (
+        unbondedValidators.pagination.total > 0 &&
+        unbondedValidators.validators.find((v) => v.jailed)
+      ) {
         break;
       }
       await sleep(10000);
