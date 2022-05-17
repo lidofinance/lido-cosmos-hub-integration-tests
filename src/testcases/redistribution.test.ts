@@ -1,186 +1,133 @@
-import { Coin } from "@terra-money/terra.js";
-import AnchorbAssetQueryHelper from "../helper/lasset_queryhelper";
-import { mustFail, mustPass } from "../helper/flow/must";
+import '../helper/cosmos.js.mocker';
+import AnchorbAssetQueryHelper from '../helper/lasset_queryhelper';
+import { atomDenom } from '../helper/types/coin';
 import {
-  redelegate_proxy_multisig,
-  redistribute,
-} from "../utils/redistribution";
-import { sleep, TestStateLocalTestNet, vals } from "./common_localtestnet";
-var assert = require("assert");
+  sleep,
+  TestStateLocalCosmosTestNet,
+  vals,
+} from './common_localcosmosnet';
 
-async function main() {
-  const testState = new TestStateLocalTestNet();
-  await testState.init();
-
-  const querier = new AnchorbAssetQueryHelper(
-    testState.lcdClient,
-    testState.lasset
-  );
-
-  await mustPass(
-    testState.lasset.bond_for_statom(testState.wallets.a, 2_500_000_000)
-  );
-  console.log("bonded");
-  const initial_delegations = [
-    2_500_000_000,
-    1_300_000_000,
-    700_000_000,
-    300_000_000,
-  ];
-  for (let i = 1; i < 4; i++) {
-    await mustPass(
-      testState.lasset.add_validator(testState.wallets.a, vals[i].address)
-    );
-    await mustPass(
-      testState.lasset.bond_for_statom(
+describe('Redistribution', () => {
+  const testState = new TestStateLocalCosmosTestNet();
+  const initial_delegations = [2_500, 1_300, 700, 300];
+  let querier;
+  beforeAll(async () => {
+    await testState.init();
+    querier = new AnchorbAssetQueryHelper(testState.wrapper, testState.lasset);
+  });
+  test('add validators', async () => {
+    for (const [i, val] of Object.entries(vals)) {
+      await testState.lasset.add_validator(testState.wallets.a, val.address);
+      await testState.lasset.bond_for_statom(
         testState.wallets.a,
-        initial_delegations[i]
-      )
-    );
-  }
-  let validators = await querier.get_validators_for_delegation();
-
-  for (let i = 0; i < initial_delegations.length; i++) {
-    assert.equal(
-      Number(
-        validators.find((v) => {
-          return v.address == vals[i].address;
-        }).total_delegated!
-      ),
-      initial_delegations[i]
-    );
-  }
-  console.log("validators");
-  // updating hub's creator field
-  await mustPass(
-    testState.lasset.update_config(
-      testState.wallets.a,
-      testState.multisigPublikKey.address()
-    )
-  );
-  console.log("updated config");
-  // previous creator is not allowed to make redeletion anymore
-  await mustFail(
-    testState.lasset.redelegate_proxy(
-      testState.wallets.ownerWallet,
-      vals[0].address,
-      [[vals[1].address, new Coin("uluna", "4000")]]
-    )
-  );
-  console.log("redelegate_proxy");
-  //one key is not enouth to sign transaction
-  await mustFail(
-    redelegate_proxy_multisig(
-      testState.lcdClient,
-      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
-      testState.multisigPublikKey,
-      testState.multisigKeys.slice(0, 0),
-      vals[0].address,
-      [[vals[1].address, new Coin("uluna", "4000")]]
-    )
-  );
-
-  await mustPass(
-    redelegate_proxy_multisig(
-      testState.lcdClient,
-      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
-      testState.multisigPublikKey,
-      testState.multisigKeys,
-      vals[0].address,
-      [[vals[1].address, new Coin("uluna", "4000")]]
-    )
-  );
-
-  await mustPass(
-    redistribute(
-      testState.lcdClient,
-      testState.multisigPublikKey,
-      testState.multisigKeys,
-      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
-      validators.map((v) => {
-        return {
-          validator: v.address,
-          amount: Number(v.total_delegated),
-        };
-      })
-    )
-  );
-
-  // we are redelegating to val1 (line34) - terravaloper180darp2tj7ns48r0s3l3u8a2ygxjyycsjmyhzz
-  // 4000 uluna and we can not to redelegate from him
-  // our delegation state should be
-  let expected_validator_state = [
-    {
-      total_delegated: "1100000000",
-      address: "terravaloper1utdag7jnhp9zy667z78dt8hnnud2mu7vax5rsn",
-    },
-    {
-      total_delegated: "1199996000",
-      address: "terravaloper188p7d0w6948y8p4cg5p3m6zx8lzzg8r0vt47ms",
-    },
-    {
-      total_delegated: "1200000000",
-      address: "terravaloper1yg247q4kecqnktp2rte030yy43gpj0c9nm5nug",
-    },
-    {
-      total_delegated: "1300004000",
-      address: "terravaloper180darp2tj7ns48r0s3l3u8a2ygxjyycsjmyhzz",
-    },
-  ];
-
-  validators = await querier.get_validators_for_delegation();
-  for (let i = 0; i < validators.length; i++) {
-    assert.equal(
-      Number(validators[i].total_delegated),
-      Number(
-        expected_validator_state.find((v) => {
-          if (v.address == validators[i].address) {
-            return true;
-          }
-        }).total_delegated
-      )
-    );
-  }
-
-  let counter = 0;
-  let threshold = 15;
-  console.log("waiting all redelegations have completed");
-  while (counter < threshold) {
-    let [
-      redelegations,
-      pagination,
-    ] = await testState.lcdClient.staking.redelegations(
-      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress
-    );
-    if (redelegations.length == 0) {
-      break;
+        initial_delegations[i],
+      );
     }
-    counter++;
-    console.log(counter);
-    await sleep(1000);
-  }
-  // and redelegating again
-  validators = await querier.get_validators_for_delegation();
-  await mustPass(
-    redistribute(
-      testState.lcdClient,
-      testState.multisigPublikKey,
-      testState.multisigKeys,
-      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
-      validators.map((v) => {
-        return {
-          validator: v.address,
-          amount: Number(v.total_delegated),
-        };
-      })
-    )
-  );
-  validators = await querier.get_validators_for_delegation();
-  for (let i = 0; i < validators.length; i++) {
-    assert.equal(Number(validators[i].total_delegated), 1_200_000_000);
-  }
-}
+  });
+  test('validate validator', async () => {
+    //TBC: is bond should be added to the first validator balance?
+    const validators = await querier.get_validators_for_delegation();
+    for (const [i, initial_delegation] of Object.entries(initial_delegations)) {
+      expect(
+        Number(
+          (validators.find((v) => v.address === vals[i].address) || {})
+            .total_delegated || 0,
+        ),
+      ).toEqual(initial_delegation);
+    }
+  });
 
-main()
-  .then(() => console.log("done"))
-  .catch(console.log);
+  test('update config', async () => {
+    const res = await testState.lasset.update_config(
+      testState.wallets.a,
+      (
+        await testState.wallets.c.getAccounts()
+      )[0].address,
+    );
+    expect(res.code).toEqual(0);
+  });
+
+  test('previous creator is not allowed to make redelegation anymore', async () => {
+    await expect(
+      testState.lasset.redelegate_proxy(
+        testState.wallets.ownerWallet,
+        vals[0].address,
+        [[vals[1].address, { amount: '1000', denom: atomDenom }]],
+      ),
+    ).rejects.toThrow(/unauthorized: execute wasm contract failed/);
+  });
+
+  test('redelegate', async () => {
+    const res = await testState.lasset.redelegate_proxy(
+      testState.wallets.c,
+      vals[0].address,
+      [[vals[1].address, { amount: '1000', denom: atomDenom }]],
+    );
+    expect(res.code).toEqual(0);
+  });
+
+  test('redistribute', async () => {
+    const validators = await querier.get_validators_for_delegation();
+    await testState.lasset.redistribute(
+      testState.wallets.c,
+      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
+      validators.map((v) => ({
+        validator: v.address,
+        amount: Number(v.total_delegated),
+      })),
+    );
+  });
+
+  test('check validators states', async () => {
+    await sleep(10000);
+    const expected_validator_state = {
+      wasmvaloper1w26krezzh6ag4pr5ql8ez3cq4aqfk5mkwks89y: '300',
+      wasmvaloper1kcsftj2kp7dypud7e8s797z7j8cj5ds2a5k9u0: '1000',
+      wasmvaloper1k4swsmsz585vmt9hzy56kaekhrsasqchtmugwe: '1200',
+      wasmvaloper1ze4hfrzl400vr7rpl54m0l5lxwxgfn8v2ffmfv: '2300',
+    };
+    const validators = await querier.get_validators_for_delegation();
+    for (const validator of validators) {
+      expect(validator.total_delegated).toEqual(
+        expected_validator_state[validator.address],
+      );
+    }
+  });
+
+  test('waiting all redelegations have completed', async () => {
+    let counter = 0;
+    const threshold = 15;
+    while (counter < threshold) {
+      const r = await testState.wrapper.queryClient.staking.redelegations(
+        testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
+        '',
+        '',
+      );
+      if (r.redelegationResponses.length == 0) {
+        break;
+      }
+      counter++;
+      console.log(counter);
+      await sleep(1000);
+    }
+  });
+
+  test('and redistribute again', async () => {
+    const validators = await querier.get_validators_for_delegation();
+    await testState.lasset.redistribute(
+      testState.wallets.c,
+      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
+      validators.map((v) => ({
+        validator: v.address,
+        amount: Number(v.total_delegated),
+      })),
+    );
+  });
+
+  test('validators state is fine', async () => {
+    const validators = await querier.get_validators_for_delegation();
+    for (let i = 0; i < validators.length; i++) {
+      expect(Number(validators[i].total_delegated)).toEqual(1_200);
+    }
+  });
+});

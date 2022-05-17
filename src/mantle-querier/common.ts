@@ -1,18 +1,18 @@
-import { gql, GraphQLClient } from "graphql-request";
+import { gql, GraphQLClient } from 'graphql-request';
 
 export const makeQuery = (
   query: string,
   variables: object,
-  client: GraphQLClient
+  client: GraphQLClient,
 ) =>
-  client.request(query, variables).catch((e) => {
+  client.request(query, variables).catch(() => {
     //
   });
 
 export const makeBalanceQuery = (address: string, client: GraphQLClient) =>
   makeQuery(
     gql`
-      query($address: String!) {
+      query ($address: String!) {
         Response: BankBalancesAddress(Address: $address) {
           Result {
             Denom
@@ -22,18 +22,17 @@ export const makeBalanceQuery = (address: string, client: GraphQLClient) =>
       }
     `,
     { address },
-    client
+    client,
   );
-
 
 export const makeContractStoreQuery = (
   contractAddress: string,
   queryMsg: object,
-  client: GraphQLClient
-) => {
-  return makeQuery(
+  client: GraphQLClient,
+) =>
+  makeQuery(
     gql`
-      query($contractAddress: String!, $queryMsg: String!) {
+      query ($contractAddress: String!, $queryMsg: String!) {
         Response: WasmContractsContractAddressStore(
           ContractAddress: $contractAddress
           QueryMsg: $queryMsg
@@ -46,6 +45,5 @@ export const makeContractStoreQuery = (
       contractAddress,
       queryMsg: JSON.stringify(queryMsg),
     },
-    client
+    client,
   ).then((r) => JSON.parse(r.Response.Result));
-  }

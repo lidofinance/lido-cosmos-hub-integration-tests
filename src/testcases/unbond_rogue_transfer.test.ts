@@ -1,13 +1,13 @@
-import { mustPass } from "../helper/flow/must";
-import { wait } from "../helper/flow/sleep";
-import { TestStateLocalTestNet } from "./common_localtestnet";
-import { makeRestStoreQuery } from "../helper/lasset_queryhelper";
-import { send_transaction } from "../helper/flow/execution";
-import { MsgSend } from "@terra-money/terra.js";
+import { mustPass } from '../helper/flow/must';
+import { wait } from '../helper/flow/sleep';
+import { TestStateLocalTestNet } from './common_localtestnet';
+import { makeRestStoreQuery } from '../helper/lasset_queryhelper';
+import { send_transaction } from '../helper/flow/execution';
+import { MsgSend } from '@terra-money/terra.js';
 
 async function getLunaBalance(testState: TestStateLocalTestNet, address) {
-  let balance = await testState.lcdClient.bank.balance(address);
-  return balance[0].get("uluna").amount;
+  const balance = await testState.lcdClient.bank.balance(address);
+  return balance[0].get('uluna').amount;
 }
 
 function approxeq(a: number, b: number, e: number) {
@@ -18,11 +18,11 @@ async function main() {
   const testState = new TestStateLocalTestNet();
   await testState.init();
 
-  let bondAmount = 20_000_000_000;
-  let unbondAmount = 5_000_000_000;
+  const bondAmount = 20_000_000_000;
+  const unbondAmount = 5_000_000_000;
 
   await mustPass(
-    testState.lasset.bond_for_statom(testState.wallets.b, bondAmount)
+    testState.lasset.bond_for_statom(testState.wallets.b, bondAmount),
   );
 
   await wait(2500);
@@ -33,8 +33,8 @@ async function main() {
       testState.wallets.b,
       unbondAmount,
       { unbond: {} },
-      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress
-    )
+      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
+    ),
   );
 
   await wait(10000);
@@ -42,25 +42,25 @@ async function main() {
   let withdrawableUnbonded = await makeRestStoreQuery(
     testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
     { withdrawable_unbonded: { address: testState.wallets.b.key.accAddress } },
-    testState.lcdClient.config.URL
+    testState.lcdClient.config.URL,
   ).then((r) => Number(r.withdrawable));
 
   if (withdrawableUnbonded != unbondAmount) {
     throw new Error(
-      `expected withdrawableUnbonded != actual withdrawableUnbonded: ${unbondAmount} != ${withdrawableUnbonded}`
+      `expected withdrawableUnbonded != actual withdrawableUnbonded: ${unbondAmount} != ${withdrawableUnbonded}`,
     );
   }
 
   // some rogue transfer
-  let rogueLunaAmount = 5000000;
+  const rogueLunaAmount = 5000000;
   await mustPass(
     send_transaction(testState.wallets.ownerWallet, [
       new MsgSend(
         testState.wallets.ownerWallet.key.accAddress,
         testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
-        `${rogueLunaAmount}uluna`
+        `${rogueLunaAmount}uluna`,
       ),
-    ])
+    ]),
   );
 
   await mustPass(
@@ -69,8 +69,8 @@ async function main() {
       testState.wallets.b,
       unbondAmount,
       { unbond: {} },
-      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress
-    )
+      testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
+    ),
   );
 
   await wait(5000);
@@ -78,35 +78,35 @@ async function main() {
   withdrawableUnbonded = await makeRestStoreQuery(
     testState.lasset.contractInfo.lido_cosmos_hub.contractAddress,
     { withdrawable_unbonded: { address: testState.wallets.b.key.accAddress } },
-    testState.lcdClient.config.URL
+    testState.lcdClient.config.URL,
   ).then((r) => r.withdrawable);
   if (withdrawableUnbonded != unbondAmount * 2) {
     throw new Error(
       `expected withdrawableUnbonded != actual withdrawableUnbonded: ${
         unbondAmount * 2
-      } != ${withdrawableUnbonded}`
+      } != ${withdrawableUnbonded}`,
     );
   }
 
-  let lunaBalanceBeforeWithdraw = await getLunaBalance(
+  const lunaBalanceBeforeWithdraw = await getLunaBalance(
     testState,
-    testState.wallets.b.key.accAddress
+    testState.wallets.b.key.accAddress,
   );
   await mustPass(testState.lasset.finish(testState.wallets.b));
-  let lunaBalanceAfterWithdraw = await getLunaBalance(
+  const lunaBalanceAfterWithdraw = await getLunaBalance(
     testState,
-    testState.wallets.b.key.accAddress
+    testState.wallets.b.key.accAddress,
   );
 
   console.log(
-    `lunaBalanceBeforeWithdraw = ${lunaBalanceBeforeWithdraw}\nlunaBalanceAfterWithdraw = ${lunaBalanceAfterWithdraw}`
+    `lunaBalanceBeforeWithdraw = ${lunaBalanceBeforeWithdraw}\nlunaBalanceAfterWithdraw = ${lunaBalanceAfterWithdraw}`,
   );
 
   if (
     !approxeq(
       +lunaBalanceAfterWithdraw - +lunaBalanceBeforeWithdraw,
       +withdrawableUnbonded + +rogueLunaAmount,
-      2
+      2,
     )
   ) {
     throw new Error(`withdraw amount is not equal to withdrawableUnboned: 
@@ -120,5 +120,5 @@ async function main() {
 }
 
 main()
-  .then(() => console.log("done"))
+  .then(() => console.log('done'))
   .catch(console.log);

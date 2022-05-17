@@ -1,8 +1,8 @@
 export interface Contracts {
-  lidoHub: string,
-  stAtomToken: string,
-  rewardsDispatcher: string,
-  validatorsRegistry: string
+  lidoHub: string;
+  stAtomToken: string;
+  rewardsDispatcher: string;
+  validatorsRegistry: string;
 }
 
 export type Addresses = string[];

@@ -3,12 +3,12 @@ yarn-error.log
 keystore.db
 yarn.lock
 lido-cosmos-contracts/artifacts/*
+.jest
 
 # IDEs
 *.iml
 .idea
 .DS_Store
 *_action.json
-*_state.json
 
 write-file-atomic*

@@ -1,14 +1,14 @@
-import { Testkit } from "../../testkit/testkit";
-import { MsgExecuteContract, Fee, Key } from "@terra-money/terra.js";
+import { Testkit } from '../../testkit/testkit';
+import { MsgExecuteContract, Fee, Key } from '@terra-money/terra.js';
 
 export const configureMMOracle = (
   owner: Key,
   oracleContractAddress: string,
   bAssetTokenContractAddress: string,
-  price: number
-) => {
-  return Testkit.automaticTxRequest({
-    accountName: "owner",
+  price: number,
+) =>
+  Testkit.automaticTxRequest({
+    accountName: 'owner',
     period: 1,
     msgs: [
       new MsgExecuteContract(owner.accAddress, oracleContractAddress, {
@@ -17,6 +17,5 @@ export const configureMMOracle = (
         },
       }),
     ],
-    fee: new Fee(10000000, "1000000uusd"),
+    fee: new Fee(10000000, '1000000uusd'),
   });
-};

@@ -3,10 +3,9 @@
  * @param ms milliseconds to wait
  * @returns
  */
-export const wait = async (ms: number): Promise<void> => {
-  return new Promise((resolve, _) => {
+export const wait = async (ms: number): Promise<void> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       resolve();
     }, ms);
   });
-};

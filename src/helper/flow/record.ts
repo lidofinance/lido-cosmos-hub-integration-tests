@@ -1,4 +1,4 @@
-import { Msg } from "@terra-money/terra.js";
+import { Msg } from '@terra-money/terra.js';
 
 interface ActionRecord {
   height: number;
